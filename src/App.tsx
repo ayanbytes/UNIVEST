@@ -21,6 +21,7 @@ import GetStarted from './components/molecules/GetStarted';
 import LoginWithOtp from './components/molecules/LoginWithOtp';
 import InvestorOnboarding from './components/molecules/InvestorOnboarding';
 import InvestorPersonalization from './components/molecules/InvestorPersonalization';
+import WelcomeContinue from './components/molecules/WelcomeContinue';
 
 // Mock Data
 const MOCK_CALLS: ResearchCall[] = [
@@ -252,6 +253,7 @@ function App() {
           <Route path="/" element={<SplashScreen />} />
           <Route path="/get-started" element={<GetStarted />} />
           <Route path="/login-otp" element={<LoginWithOtp />} />
+          <Route path="/welcome-continue" element={<WelcomeContinue />} />
           <Route path="/onboarding" element={<InvestorOnboarding />} />
           <Route path="/personalization" element={<InvestorPersonalization />} />
           <Route

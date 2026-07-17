@@ -9,8 +9,11 @@ export const LoginWithOtp = () => {
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const queryParams = new URLSearchParams(window.location.search);
+  const mode = queryParams.get('mode') || 'new';
+
   const handleBack = () => {
-    window.location.href = '/get-started';
+    window.location.href = '/welcome-continue';
   };
 
   const handleSendOtp = (e: React.FormEvent) => {
@@ -29,7 +32,11 @@ export const LoginWithOtp = () => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      window.location.href = '/onboarding';
+      if (mode === 'existing') {
+        window.location.href = '/design-system';
+      } else {
+        window.location.href = '/onboarding';
+      }
     }, 1200);
   };
 

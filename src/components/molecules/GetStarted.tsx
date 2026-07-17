@@ -19,11 +19,11 @@ export const GetStarted = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const handleGetStarted = () => {
-    navigate('/login-otp');
+    navigate('/welcome-continue');
   };
 
   const handleLoginOtp = () => {
-    navigate('/login-otp');
+    navigate('/welcome-continue');
   };
 
   useEffect(() => {
