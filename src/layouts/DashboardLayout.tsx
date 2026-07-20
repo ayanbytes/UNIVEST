@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, TrendingUp, Compass, Briefcase, User, 
-  Sun, Moon, Bell, Sparkles, Send, X, ShieldAlert,
-  ArrowRight, ArrowLeft, BrainCircuit
+  Bell, Sparkles, Send, X, ShieldAlert,
+  ArrowRight, ArrowLeft, BrainCircuit, Search, ChevronDown,
+  Bookmark, Plus, Trash2, AlertCircle, Wand2, ArrowUpRight,
+  BarChart3, CandlestickChart, Wallet, Gem,
+  Fuel, Rocket, Layers, Landmark, Shield, MoreHorizontal, Clock
 } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
-import { Button } from '../components/atoms/Button';
+import { MarketRibbon } from '../components/dashboard/MarketRibbon';
+import { InvestHub } from '../components/dashboard/InvestHub';
+import { ResearchCenter } from '../components/dashboard/ResearchCenter';
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -44,11 +48,79 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   );
 };
 
+// Types for Workspace elements
+interface CustomWatchlist {
+  id: string;
+  name: string;
+  color: string;
+  icon: string;
+  description: string;
+}
+
+interface DrawerStock {
+  symbol: string;
+  companyName: string;
+  price: string;
+  changePercent: number;
+  sparkline: number[];
+  rsi: number;
+  alertStatus?: 'target-hit' | 'volume-spike' | 'ai-alert' | 'stop-loss' | null;
+  category: string;
+  logoText: string;
+  flash?: 'green' | 'red' | null;
+}
+
 export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { theme, toggleTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('Home');
+  const [activeInvestCategory, setActiveInvestCategory] = useState('stocks');
   const [aiOpen, setAiOpen] = useState(false);
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
+  const [workspaceTab, setWorkspaceTab] = useState<'watchlists' | 'research' | 'alerts' | 'ai'>('watchlists');
+  
+  // Custom Watchlists state
+  const [customWatchlists, setCustomWatchlists] = useState<CustomWatchlist[]>([
+    { id: 'cw1', name: 'Dividend Yield', color: 'Purple', icon: 'gem', description: 'Stocks with solid dividend track records' }
+  ]);
+  const [activeWatchlistTab, setActiveWatchlistTab] = useState<string>('All');
+  const [watchlistSearch, setWatchlistSearch] = useState('');
+  
+  // Watchlist Modal creation state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newWatchlistName, setNewWatchlistName] = useState('');
+  const [newWatchlistColor, setNewWatchlistColor] = useState('Blue');
+  const [newWatchlistIcon, setNewWatchlistIcon] = useState('bookmark');
+  const [newWatchlistDesc, setNewWatchlistDesc] = useState('');
+
+  // Watchlist Items
+  const [watchlistStocks, setWatchlistStocks] = useState<DrawerStock[]>([
+    { symbol: 'RELIANCE', companyName: 'Reliance Industries Ltd', price: '2,934.50', changePercent: 1.25, sparkline: [2900, 2910, 2915, 2928, 2934.5], rsi: 58, alertStatus: 'ai-alert', category: 'Long Term', logoText: 'RL' },
+    { symbol: 'INFY', companyName: 'Infosys Limited', price: '1,562.10', changePercent: -0.85, sparkline: [1580, 1572, 1560, 1564, 1562.1], rsi: 42, alertStatus: 'stop-loss', category: 'Tech', logoText: 'IF' },
+    { symbol: 'TATASTEEL', companyName: 'Tata Steel Limited', price: '147.20', changePercent: 2.40, sparkline: [141, 143, 145, 144, 147.2], rsi: 65, alertStatus: 'target-hit', category: 'Swing', logoText: 'TS' },
+    { symbol: 'HDFCBANK', companyName: 'HDFC Bank Limited', price: '1,682.40', changePercent: 0.85, sparkline: [1660, 1672, 1675, 1678, 1682.4], rsi: 52, alertStatus: 'volume-spike', category: 'Long Term', logoText: 'HD' }
+  ]);
+
+  // Saved Research
+  const savedResearch = [
+    { id: 'sr1', symbol: 'HDFCBANK', title: 'Q1 Earnings Beat & Core Margin Recovery Analysis', analyst: 'Aarav Mehta', time: '2 hours ago' },
+    { id: 'sr2', symbol: 'RELIANCE', title: 'New Energy Giga-factory Commissioning Valuation Impact', analyst: 'Neha Shah', time: 'Yesterday' }
+  ];
+
+  // Active Alerts
+  const [activeAlerts, setActiveAlerts] = useState([
+    { id: 'al1', symbol: 'INFY', target: '₹1,600', condition: 'Price Above', type: 'target-hit' },
+    { id: 'al2', symbol: 'TATASTEEL', target: '₹140', condition: 'Price Below', type: 'stop-loss' }
+  ]);
+
+  // AI Queue
+  const aiQueue = [
+    { id: 'aq1', query: 'Portfolio Sector Concentration Risk Assessment', status: 'Completed', result: 'High exposure detected in IT (25%). Recommending reallocation into defensive utilities.' },
+    { id: 'aq2', query: 'Analyze L&T Relative Strength Index breakout validation', status: 'In Progress', result: 'AI Engine calculating technical breakouts...' }
+  ];
+
+  // Hover item overlay
+  const [hoveredStockSymbol, setHoveredStockSymbol] = useState<string | null>(null);
+
   const [chatMessages, setChatMessages] = useState<string[]>([
     'Hello Omar! I am your Univest AI Assistant. How can I help you build wealth today?',
   ]);
@@ -57,10 +129,45 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
   const tabs = [
     { name: 'Home', icon: <Home className="w-5 h-5" />, label: 'Home' },
     { name: 'Research', icon: <TrendingUp className="w-5 h-5" />, label: 'Research', badgeCount: 3 },
-    { name: 'Markets', icon: <Compass className="w-5 h-5" />, label: 'Markets' },
+    { name: 'Invest', icon: <Compass className="w-5 h-5" />, label: 'Invest' },
     { name: 'Portfolio', icon: <Briefcase className="w-5 h-5" />, label: 'Portfolio' },
     { name: 'Profile', icon: <User className="w-5 h-5" />, label: 'Profile' },
   ];
+
+  // Watchlist prices auto-tick simulator
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWatchlistStocks((prevStocks) => {
+        if (prevStocks.length === 0) return prevStocks;
+        const randomIndex = Math.floor(Math.random() * prevStocks.length);
+        return prevStocks.map((stock, idx) => {
+          if (idx === randomIndex) {
+            const numericPrice = parseFloat(stock.price.replace(/,/g, ''));
+            const variance = (Math.random() * 0.26 - 0.13) / 100;
+            const newPrice = numericPrice * (1 + variance);
+            return {
+              ...stock,
+              price: newPrice.toLocaleString('en-IN', {
+                maximumFractionDigits: 2,
+                minimumFractionDigits: 2
+              }),
+              changePercent: stock.changePercent + (variance * 100),
+              flash: variance > 0 ? 'green' : 'red'
+            };
+          }
+          return stock;
+        });
+      });
+
+      // Clear flashes
+      setTimeout(() => {
+        setWatchlistStocks(curr => curr.map(s => s.flash ? { ...s, flash: null } : s));
+      }, 1000);
+
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSendPrompt = (prompt: string) => {
     if (!prompt.trim()) return;
@@ -69,9 +176,67 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
     setTimeout(() => {
       setChatMessages((prev) => [
         ...prev,
-        `I am analyzing "${prompt}" using real-time NSE data feeds and compliance models. Win-rates show a favorable outlook.`,
+        `I am analyzing "${prompt}" using real-time data feeds and compliance models. Win-rates show a favorable outlook.`,
       ]);
     }, 1000);
+  };
+
+  const handleCreateWatchlist = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newWatchlistName.trim()) return;
+    const newId = `cw-${Date.now()}`;
+    const newList: CustomWatchlist = {
+      id: newId,
+      name: newWatchlistName,
+      color: newWatchlistColor,
+      icon: newWatchlistIcon,
+      description: newWatchlistDesc
+    };
+    setCustomWatchlists(prev => [...prev, newList]);
+    setActiveWatchlistTab(newWatchlistName);
+    
+    // Clear and close
+    setNewWatchlistName('');
+    setNewWatchlistDesc('');
+    setShowCreateModal(false);
+  };
+
+  const handleAddStockToWatchlist = () => {
+    // Demo quick add helper
+    const demoOptions: DrawerStock[] = [
+      { symbol: 'TCS', companyName: 'Tata Consultancy Services', price: '4,185.10', changePercent: -0.42, sparkline: [4210, 4200, 4185.1], rsi: 48, alertStatus: null, category: 'Tech', logoText: 'TC' },
+      { symbol: 'LT', companyName: 'Larsen & Toubro Ltd', price: '3,456.90', changePercent: 1.05, sparkline: [3410, 3435, 3456.9], rsi: 59, alertStatus: 'ai-alert', category: 'Dividend Yield', logoText: 'LT' }
+    ];
+    
+    const stockToAdd = demoOptions.find(opt => !watchlistStocks.some(w => w.symbol === opt.symbol));
+    if (stockToAdd) {
+      setWatchlistStocks(prev => [...prev, stockToAdd]);
+    }
+  };
+
+  const handleRemoveStock = (symbol: string) => {
+    setWatchlistStocks(prev => prev.filter(w => w.symbol !== symbol));
+  };
+
+  // Watchlist tabs listing
+  const watchlistTabs = ['All', 'Long Term', 'Tech', 'Swing', 'F&O', ...customWatchlists.map(c => c.name)];
+
+  const filteredWatchlistStocks = watchlistStocks.filter(stock => {
+    const matchesSearch = stock.symbol.toLowerCase().includes(watchlistSearch.toLowerCase()) || 
+                          stock.companyName.toLowerCase().includes(watchlistSearch.toLowerCase());
+    const matchesTab = activeWatchlistTab === 'All' || stock.category === activeWatchlistTab;
+    return matchesSearch && matchesTab;
+  });
+
+  const getAlertBadgeColor = (status?: string | null) => {
+    if (!status) return null;
+    switch (status) {
+      case 'target-hit': return 'bg-[#DCFCE7] text-[#166534]';
+      case 'volume-spike': return 'bg-[#FEF3C7] text-[#92400E]';
+      case 'ai-alert': return 'bg-[#DBEAFE] text-[#1D4ED8]';
+      case 'stop-loss': return 'bg-[#FEECEC] text-[#991B1B]';
+      default: return 'bg-slate-100 text-slate-600';
+    }
   };
 
   return (
@@ -147,21 +312,19 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="icon"
-            onClick={toggleTheme}
-            className="text-brand-secondary hover:text-brand-navy p-2"
+          {/* Workspace Trigger (mobile) */}
+          <button 
+            onClick={() => setWorkspaceOpen(true)}
+            className="grid h-9 w-9 place-items-center rounded-xl border border-brand-border bg-white text-slate-500 hover:text-primary transition-colors"
+            aria-label="Workspace"
           >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </Button>
-          
-          <Button
-            variant="icon"
-            className="relative text-brand-secondary hover:text-brand-navy p-2"
-          >
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse" />
-          </Button>
+            <Bookmark className="w-4 h-4" />
+          </button>
+          <button className="relative grid h-9 w-9 place-items-center rounded-xl border border-brand-border bg-white text-brand-secondary" aria-label="Notifications">
+            <Bell className="h-4 w-4" />
+            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full border-2 border-white bg-rose-500" />
+          </button>
+          <button className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-blue-700 text-[10px] font-black text-white" aria-label="Open profile">OK</button>
         </div>
       </header>
 
@@ -175,75 +338,144 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
             <p className="text-[11px] text-brand-secondary">Explore stock advisories, charts and economic screeners.</p>
           </div>
 
-          <div className="flex items-center gap-4">
-            <Button
-              variant="icon"
-              onClick={toggleTheme}
-              className="text-brand-secondary hover:text-brand-navy"
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </Button>
-            
-            <Button
-              variant="icon"
-              className="relative text-brand-secondary hover:text-brand-navy"
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
-            </Button>
-          </div>
-        </header>
+          {activeTab !== 'Research' ? (
+            <label className="mx-8 flex w-full max-w-lg items-center gap-2.5 rounded-xl border border-brand-border bg-slate-50 px-3.5 py-2.5 text-brand-secondary transition focus-within:border-primary focus-within:bg-white focus-within:ring-4 focus-within:ring-primary/10">
+              <Search className="h-4 w-4 shrink-0 text-primary" />
+              <input
+                type="search"
+                aria-label="Search research, stocks, or markets"
+                placeholder="Search stocks, research, or markets..."
+                className="min-w-0 flex-1 bg-transparent text-xs font-medium text-brand-navy outline-none placeholder:text-slate-400"
+              />
+              <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-semibold text-slate-400">⌘ K</kbd>
+            </label>
+          ) : (
+            <div className="flex-1" />
+          )}
 
-        {/* Primary Page Content Grid Area */}
-        <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
-          
-          {/* Sub Navigation Bar showing Information Architecture */}
-          <div className="bg-white border border-brand-border rounded-card p-5 shadow-premium-sm flex flex-col gap-3">
-            <span className="text-[10px] text-brand-secondary font-bold uppercase tracking-wider">
-              {activeTab} Directory Architecture Preview
-            </span>
-            <div className="flex flex-wrap gap-2.5">
-              {activeTab === 'Home' && [
-                'Dashboard', 'Portfolio Summary', "Today's Research", 'AI Recommendations', 'Economic Overview', 'Trending News', 'IPO Highlights', 'Mutual Funds'
-              ].map(sub => (
-                <span key={sub} className="px-3 py-1.5 bg-slate-50 border border-slate-200 text-xs font-semibold rounded-full text-brand-secondary cursor-pointer hover:border-primary hover:text-primary transition-all">
-                  {sub}
-                </span>
-              ))}
-              {activeTab === 'Research' && [
-                'All Research', 'Equity Calls', 'Intraday Strategy', 'Swing Options', 'Positional', 'F&O Recommendations', 'Commodity Calls', 'Research Reports'
-              ].map(sub => (
-                <span key={sub} className="px-3 py-1.5 bg-slate-50 border border-slate-200 text-xs font-semibold rounded-full text-brand-secondary cursor-pointer hover:border-primary hover:text-primary transition-all">
-                  {sub}
-                </span>
-              ))}
-              {activeTab === 'Markets' && [
-                'Discover Tickers', 'Stock Screener', 'IPO Calendar', 'Mutual Funds Discovery', 'ETFs', 'Fixed Deposits', 'Economic Calendar', 'Sectors Map'
-              ].map(sub => (
-                <span key={sub} className="px-3 py-1.5 bg-slate-50 border border-slate-200 text-xs font-semibold rounded-full text-brand-secondary cursor-pointer hover:border-primary hover:text-primary transition-all">
-                  {sub}
-                </span>
-              ))}
-              {activeTab === 'Portfolio' && [
-                'My Holdings', 'Transactions Logs', 'Net Performance', 'Broker Integrations', 'Asset Allocations', 'Risk Assessments', 'P&L Reports'
-              ].map(sub => (
-                <span key={sub} className="px-3 py-1.5 bg-slate-50 border border-slate-200 text-xs font-semibold rounded-full text-brand-secondary cursor-pointer hover:border-primary hover:text-primary transition-all">
-                  {sub}
-                </span>
-              ))}
-              {activeTab === 'Profile' && [
-                'Personal Identity', 'KYC Credentials', 'Subscription Plans', 'Bank Details', 'Broker Keys', 'Support Portal', 'Privacy Documentation'
-              ].map(sub => (
-                <span key={sub} className="px-3 py-1.5 bg-slate-50 border border-slate-200 text-xs font-semibold rounded-full text-brand-secondary cursor-pointer hover:border-primary hover:text-primary transition-all">
-                  {sub}
-                </span>
-              ))}
+          {/* Portfolio Performance Summary Widget */}
+          <div className="hidden xl:flex flex-col gap-0.5 select-none text-left">
+            <span className="text-[10px] font-bold text-brand-secondary uppercase tracking-wider">Your portfolio value</span>
+            <div className="flex items-center gap-2.5">
+              <span className="font-black text-base text-[#0F172A]">₹8,42,150</span>
+              <span className="font-black text-xs text-[#16A34A] flex items-center gap-0.5">
+                <TrendingUp className="w-3.5 h-3.5 text-[#16A34A]" /> +₹12,840 (+1.55%)
+              </span>
             </div>
           </div>
 
-          {/* Child content preview */}
+          <div className="flex items-center gap-3">
+            {/* Desktop Premium Workspace trigger */}
+            <button 
+              onClick={() => setWorkspaceOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 h-10 rounded-xl border border-brand-border bg-white text-[#0F172A] hover:bg-slate-50 hover:border-blue-200 transition-colors"
+            >
+              <Bookmark className="w-4 h-4 text-slate-500" />
+              <span className="text-xs font-black">Workspace</span>
+            </button>
+
+            <button className="relative grid h-10 w-10 place-items-center rounded-xl border border-brand-border bg-white text-brand-secondary transition hover:border-blue-200 hover:bg-blue-50 hover:text-primary" aria-label="Notifications">
+              <Bell className="h-4 w-4" />
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-rose-500" />
+            </button>
+            <button className="flex items-center gap-2 rounded-xl border border-brand-border bg-white py-1.5 pl-1.5 pr-2.5 text-left transition hover:border-blue-200 hover:bg-slate-50" aria-label="Open profile menu">
+              <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-[10px] font-black text-white">OK</span>
+              <span className="hidden xl:block"><span className="block text-[11px] font-bold leading-4 text-brand-navy">Omar Khan</span><span className="block text-[9px] leading-3 text-brand-secondary">Verified investor</span></span>
+              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+            </button>
+          </div>
+        </header>
+
+        <MarketRibbon />
+
+        {/* Primary Page Content Grid Area */}
+        <main className="flex-1 w-full p-6 flex flex-col gap-6">
+          
+          {/* PREMIUM HORIZONTAL INVESTMENT HUB GATEWAY */}
+          {activeTab === 'Invest' && (
+            <div className="w-full flex flex-col gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Investment Hub Gateway</span>
+              <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-none no-scrollbar">
+                {[
+                  { id: 'stocks', name: 'Stocks', subtitle: '12,500+ Companies', icon: 'bar-chart', liveIndicator: 'NSE Live' },
+                  { id: 'fno', name: 'Futures & Options', subtitle: 'High Activity Today', icon: 'candlestick', liveIndicator: 'PCR 1.12', aiBadge: true },
+                  { id: 'funds', name: 'Mutual Funds', subtitle: '1,200+ Funds', icon: 'wallet', liveIndicator: '2 Funds Up' },
+                  { id: 'gold', name: 'Gold', subtitle: 'Digital Gold & SGB', icon: 'gem', liveIndicator: 'SGB 2.5%' },
+                  { id: 'commodities', name: 'Commodities', subtitle: 'Live Prices', icon: 'fuel', liveIndicator: 'Crude ▲1.2%' },
+                  { id: 'ipo', name: 'IPO', subtitle: 'Open & Upcoming', icon: 'rocket', liveIndicator: '1 Open', aiBadge: true },
+                  { id: 'etf', name: 'ETFs', subtitle: 'Equity & Gold', icon: 'layers', liveIndicator: 'Nifty Junior' },
+                  { id: 'bonds', name: 'FD & Bonds', subtitle: 'Fixed Income', icon: 'landmark', liveIndicator: 'NHAI 7.35%' },
+                  { id: 'nps', name: 'NPS', subtitle: 'Retirement Plan', icon: 'shield', liveIndicator: 'Tax Free' },
+                  { id: 'more', name: 'More', subtitle: 'Extra Products', icon: 'more', liveIndicator: 'AI Rated' }
+                ].map((cat) => {
+                  const isActive = activeTab === 'Invest' && activeInvestCategory === cat.id;
+                  return (
+                    <motion.button
+                      whileHover={{ y: -3 }}
+                      key={cat.id}
+                      onClick={() => {
+                        setActiveInvestCategory(cat.id);
+                        setActiveTab('Invest');
+                      }}
+                      className={`group snap-center shrink-0 min-w-[200px] bg-white border rounded-[22px] p-4 text-left transition-all duration-200 hover:shadow-premium select-none relative overflow-hidden flex flex-col justify-between h-[105px] ${
+                        isActive 
+                          ? 'border-[#2563EB] ring-2 ring-[#2563EB]/10' 
+                          : 'border-[#E2E8F0] hover:border-[#2563EB]'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between w-full">
+                        <span className="text-slate-500 group-hover:text-primary transition-colors shrink-0">
+                          {cat.icon === 'bar-chart' && <BarChart3 className="w-5 h-5" />}
+                          {cat.icon === 'candlestick' && <CandlestickChart className="w-5 h-5" />}
+                          {cat.icon === 'wallet' && <Wallet className="w-5 h-5" />}
+                          {cat.icon === 'gem' && <Gem className="w-5 h-5" />}
+                          {cat.icon === 'fuel' && <Fuel className="w-5 h-5" />}
+                          {cat.icon === 'rocket' && <Rocket className="w-5 h-5" />}
+                          {cat.icon === 'layers' && <Layers className="w-5 h-5" />}
+                          {cat.icon === 'landmark' && <Landmark className="w-5 h-5" />}
+                          {cat.icon === 'shield' && <Shield className="w-5 h-5" />}
+                          {cat.icon === 'more' && <MoreHorizontal className="w-5 h-5" />}
+                        </span>
+                        
+                        <div className="flex items-center gap-1 shrink-0">
+                          {cat.aiBadge && (
+                            <span className="text-[8px] font-black bg-blue-50 text-[#2563EB] border border-blue-100 px-1 rounded uppercase">
+                              AI
+                            </span>
+                          )}
+                          <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-slate-100 text-[#64748B] shrink-0">
+                            {cat.liveIndicator}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 text-left">
+                        <span className="text-xs font-black text-[#0F172A] block">{cat.name}</span>
+                        <span className="text-[9px] text-[#64748B] block mt-0.5 leading-normal truncate">{cat.subtitle}</span>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="flex-1">
-            {children}
+            {activeTab === 'Home' && children}
+            {activeTab === 'Invest' && <InvestHub activeCategory={activeInvestCategory} />}
+            {activeTab === 'Research' && <ResearchCenter />}
+            {activeTab === 'Portfolio' && (
+              <div className="bg-white p-6 rounded-3xl border border-[#E2E8F0] shadow-sm">
+                <h3 className="text-base font-black text-brand-navy mb-2">My Portfolios</h3>
+                <p className="text-xs text-brand-secondary">Track and manage your multi-broker accounts.</p>
+              </div>
+            )}
+            {activeTab === 'Profile' && (
+              <div className="bg-white p-6 rounded-3xl border border-[#E2E8F0] shadow-sm">
+                <h3 className="text-base font-black text-brand-navy mb-2">User Profile</h3>
+                <p className="text-xs text-brand-secondary">Manage risk profiles, settings and verification keys.</p>
+              </div>
+            )}
           </div>
         </main>
       </div>
@@ -284,7 +516,6 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       <AnimatePresence>
         {aiOpen && (
           <div className="fixed inset-0 z-50 flex justify-end">
-            {/* Backdrop overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -292,8 +523,6 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
               onClick={() => setAiOpen(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
-
-            {/* Chat drawer */}
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
@@ -381,6 +610,467 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                 <span>AI advisory suggestions do not constitute a direct transaction offer. Double-check options target risks.</span>
               </div>
             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* PREMIUM RIGHT SLIDE-OVER WORKSPACE DRAWER PANEL */}
+      <AnimatePresence>
+        {workspaceOpen && (
+          <div className="fixed inset-0 z-50 flex justify-end">
+            {/* Backdrop overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setWorkspaceOpen(false)}
+              className="absolute inset-0 bg-slate-900/30 backdrop-blur-xs"
+            />
+            
+            {/* Workspace Drawer */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+              className="relative w-full max-w-[450px] bg-white border-l border-brand-border h-full flex flex-col shadow-2xl z-10 overflow-hidden"
+            >
+              {/* Header */}
+              <div className="p-5 border-b border-slate-100 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="w-4.5 h-4.5 text-slate-500" />
+                    <h3 className="text-sm font-black text-brand-navy">Personal Workspace</h3>
+                  </div>
+                  <button 
+                    onClick={() => setWorkspaceOpen(false)}
+                    className="p-1.5 hover:bg-slate-100 rounded-full text-brand-secondary transition-colors"
+                  >
+                    <X className="w-4.5 h-4.5" />
+                  </button>
+                </div>
+
+                {/* Workspace Hub Tabs */}
+                <div className="flex items-center gap-1.5 border-b border-slate-100 pb-1 text-[10.5px]">
+                  {[
+                    { id: 'watchlists', label: 'Watchlists' },
+                    { id: 'research', label: 'Saved Research' },
+                    { id: 'alerts', label: 'Alerts' },
+                    { id: 'ai', label: 'AI Queue' }
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setWorkspaceTab(tab.id as any)}
+                      className={`px-2.5 py-1.5 rounded-lg font-black transition-colors shrink-0 ${
+                        workspaceTab === tab.id
+                          ? 'bg-brand-navy text-white'
+                          : 'text-[#64748B] hover:text-[#0F172A] hover:bg-slate-100'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Drawer Content Body */}
+              <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
+                
+                {/* 1. WATCHLISTS TAB */}
+                {workspaceTab === 'watchlists' && (
+                  <div className="flex flex-col gap-4">
+                    {/* Performance Summary Banner */}
+                    <div className="bg-[#F8FAFC] border border-[#E2E8F0] px-4 py-3 rounded-2xl flex items-center justify-between text-xs">
+                      <div>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Watchlist performance</span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="font-extrabold text-[#0F172A]">+{watchlistStocks.length > 0 ? '2.45%' : '0.00%'}</span>
+                          <span className="text-[9px] font-bold text-[#16A34A] bg-[#E8F8F0] px-1.5 py-0.2 rounded">Today</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
+                        <span className="font-extrabold text-slate-600 text-[10px]">
+                          {watchlistStocks.filter(s => s.changePercent >= 0).length} Up • {watchlistStocks.filter(s => s.changePercent < 0).length} Down
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Controls Row */}
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                        <input 
+                          type="text"
+                          placeholder="Search watchlist..."
+                          value={watchlistSearch}
+                          onChange={(e) => setWatchlistSearch(e.target.value)}
+                          className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-8 pr-3 py-1.5 text-xs text-brand-navy outline-none placeholder:text-slate-400"
+                        />
+                      </div>
+                      <button 
+                        onClick={() => setShowCreateModal(true)}
+                        className="h-8 px-2.5 bg-brand-navy text-white text-[10px] font-black rounded-lg hover:bg-slate-800 flex items-center gap-1 shrink-0"
+                      >
+                        <Plus className="w-3 h-3" /> New
+                      </button>
+                    </div>
+
+                    {/* Watchlist Categories Tabs */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar border-b border-slate-100 text-[10px]">
+                      {watchlistTabs.map((tab) => (
+                        <button
+                          key={tab}
+                          onClick={() => setActiveWatchlistTab(tab)}
+                          className={`px-2.5 py-1 rounded-lg font-black transition-colors ${
+                            activeWatchlistTab === tab 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-slate-100 text-[#64748B] hover:text-[#0F172A]'
+                          }`}
+                        >
+                          {tab}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Stock Rows List */}
+                    <div className="flex flex-col gap-2 min-h-[160px]">
+                      {filteredWatchlistStocks.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center text-center py-8">
+                          <Bookmark className="w-8 h-8 text-slate-300" />
+                          <h4 className="text-xs font-black text-[#0F172A] mt-3">Build Your Watchlist</h4>
+                          <p className="text-[10px] text-[#64748B] mt-1 leading-normal max-w-[170px]">
+                            Track your favourite stocks and receive instant alerts.
+                          </p>
+                          <button 
+                            onClick={handleAddStockToWatchlist}
+                            className="mt-3 text-[10px] font-black bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700"
+                          >
+                            Add Stock Feed
+                          </button>
+                        </div>
+                      ) : (
+                        filteredWatchlistStocks.map((stock) => {
+                          const isPositive = stock.changePercent >= 0;
+                          const isHovered = hoveredStockSymbol === stock.symbol;
+
+                          return (
+                            <div 
+                              key={stock.symbol}
+                              onMouseEnter={() => setHoveredStockSymbol(stock.symbol)}
+                              onMouseLeave={() => setHoveredStockSymbol(null)}
+                              className={`relative p-3 rounded-xl border transition-all duration-200 ${
+                                stock.flash === 'green'
+                                  ? 'bg-emerald-50 border-emerald-300'
+                                  : stock.flash === 'red'
+                                  ? 'bg-rose-50 border-rose-300'
+                                  : 'bg-white border-[#E2E8F0] hover:border-slate-300'
+                              }`}
+                            >
+                              {/* Stock Info */}
+                              <div className={`flex items-center justify-between transition-opacity ${isHovered ? 'opacity-15' : 'opacity-100'}`}>
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <span className="w-7 h-7 bg-slate-100 rounded-lg flex items-center justify-center font-black text-[9px] text-[#64748B] shrink-0">
+                                    {stock.logoText}
+                                  </span>
+                                  <div className="min-w-0">
+                                    <span className="text-xs font-black text-[#0F172A] block">{stock.symbol}</span>
+                                    <span className="text-[9.5px] text-[#64748B] truncate block max-w-[100px]">{stock.companyName}</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2.5 shrink-0">
+                                  {/* Alert & RSI */}
+                                  <div className="flex flex-col gap-0.5 items-end">
+                                    {stock.alertStatus && (
+                                      <span className={`text-[8px] font-black px-1.5 py-0.2 rounded-full ${getAlertBadgeColor(stock.alertStatus)}`}>
+                                        {stock.alertStatus.toUpperCase()}
+                                      </span>
+                                    )}
+                                    <span className="text-[8.5px] font-bold text-slate-400">RSI {stock.rsi}</span>
+                                  </div>
+
+                                  {/* Mini sparkline */}
+                                  <svg className="w-8 h-4 overflow-visible" viewBox="0 0 40 20">
+                                    <path 
+                                      d={isPositive ? 'M0 15 L8 12 L16 14 L24 6 L32 8 L40 2' : 'M0 5 L8 8 L16 6 L24 14 L32 12 L40 18'} 
+                                      fill="none" 
+                                      stroke={isPositive ? '#16A34A' : '#EF4444'} 
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                    />
+                                  </svg>
+
+                                  <div className="text-right">
+                                    <span className="text-[11px] font-extrabold text-[#0F172A] block">₹{stock.price}</span>
+                                    <span className={`text-[9px] font-black block ${isPositive ? 'text-[#16A34A]' : 'text-[#EF4444]'}`}>
+                                      {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Desktop Hover Quick Actions Overlay */}
+                              {isHovered && (
+                                <div className="absolute inset-0 bg-slate-50/95 rounded-xl flex items-center justify-around px-3 z-10">
+                                  <button className="text-[9px] font-black text-white bg-blue-600 px-2 py-1 rounded-md hover:bg-blue-700">
+                                    BUY
+                                  </button>
+                                  <button className="text-[9px] font-black text-brand-navy bg-slate-200 px-2 py-1 rounded-md hover:bg-slate-300">
+                                    ANALYZE
+                                  </button>
+                                  <button className="text-[9px] font-black text-brand-navy bg-white border border-[#E2E8F0] px-2 py-1 rounded-md hover:bg-slate-100">
+                                    RESEARCH
+                                  </button>
+                                  <button 
+                                    onClick={() => handleRemoveStock(stock.symbol)}
+                                    className="p-1 hover:bg-rose-50 text-[#EF4444] rounded-md"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    {/* Quick Add helper trigger */}
+                    {watchlistStocks.length < 6 && (
+                      <button 
+                        onClick={handleAddStockToWatchlist}
+                        className="w-full py-2 bg-slate-50 border border-dashed border-[#E2E8F0] hover:border-slate-400 text-[#64748B] hover:text-[#0F172A] rounded-xl text-xs font-bold transition-colors text-center"
+                      >
+                        + Add Stock from Recommendations
+                      </button>
+                    )}
+
+                    {/* AI Suggested Stocks */}
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                      <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2.5 flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> AI Suggested Stocks</h4>
+                      <div className="bg-blue-50/40 border border-blue-100/60 p-3 rounded-xl flex items-start gap-2.5 text-xs">
+                        <Wand2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-bold text-blue-600">Add L&T (Larsen & Toubro)</span>
+                          <p className="text-[10.5px] text-slate-600 mt-1 leading-normal">
+                            Based on your watchlist momentum, L&T shows strong correlation and breakouts in the industrial sector.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Recently Viewed */}
+                    <div className="mt-2 pt-2">
+                      <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2.5 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Recently Viewed</h4>
+                      <div className="flex gap-2 text-[10px] font-bold text-[#64748B]">
+                        <span className="bg-slate-100 px-2 py-1 rounded cursor-pointer hover:bg-slate-200">TCS</span>
+                        <span className="bg-slate-100 px-2 py-1 rounded cursor-pointer hover:bg-slate-200">TATAMOTORS</span>
+                        <span className="bg-slate-100 px-2 py-1 rounded cursor-pointer hover:bg-slate-200">GOLD FUT</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. SAVED RESEARCH TAB */}
+                {workspaceTab === 'research' && (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black uppercase text-brand-navy">Bookmarks</h4>
+                      <span className="text-[10px] text-[#64748B] font-bold">{savedResearch.length} Saved</span>
+                    </div>
+
+                    <div className="flex flex-col gap-2.5">
+                      {savedResearch.map((res) => (
+                        <div key={res.id} className="bg-white border border-[#E2E8F0] p-3 rounded-xl hover:border-blue-200 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black bg-blue-50 text-blue-600 px-2 py-0.5 rounded">{res.symbol}</span>
+                            <span className="text-[9px] text-slate-400">{res.time}</span>
+                          </div>
+                          <h4 className="text-xs font-black text-[#0F172A] mt-2 leading-relaxed">{res.title}</h4>
+                          <div className="flex items-center justify-between mt-3.5 pt-2 border-t border-slate-50 text-[10px]">
+                            <span className="text-slate-400">By <b>{res.analyst}</b></span>
+                            <button className="text-blue-600 font-bold hover:underline flex items-center gap-0.5">
+                              Read Call <ArrowUpRight className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. ALERTS TAB */}
+                {workspaceTab === 'alerts' && (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black uppercase text-brand-navy">Active Price Alerts</h4>
+                      <button className="h-7 px-2.5 bg-brand-navy hover:bg-slate-800 text-[10px] font-black text-white rounded-lg">
+                        + Add Alert
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col gap-2.5">
+                      {activeAlerts.map((alert) => (
+                        <div key={alert.id} className="bg-white border border-[#E2E8F0] p-3 rounded-xl flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                            <div>
+                              <span className="text-xs font-black text-[#0F172A]">{alert.symbol}</span>
+                              <span className="block text-[9.5px] text-[#64748B] mt-0.5">{alert.condition} <b>{alert.target}</b></span>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => setActiveAlerts(curr => curr.filter(a => a.id !== alert.id))}
+                            className="text-[9px] font-black text-[#EF4444] hover:bg-rose-50 px-2.5 py-1 rounded-md"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. AI QUEUE TAB */}
+                {workspaceTab === 'ai' && (
+                  <div className="flex flex-col gap-3">
+                    <h4 className="text-xs font-black uppercase text-brand-navy">AI Intelligence Backlog</h4>
+                    
+                    <div className="flex flex-col gap-3">
+                      {aiQueue.map((item) => (
+                        <div key={item.id} className="bg-white border border-[#E2E8F0] p-3.5 rounded-xl flex flex-col gap-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black text-brand-navy leading-normal">{item.query}</span>
+                            <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded ${
+                              item.status === 'Completed' ? 'bg-[#DCFCE7] text-[#166534]' : 'bg-[#FEF3C7] text-[#92400E]'
+                            }`}>
+                              {item.status}
+                            </span>
+                          </div>
+                          {item.result && (
+                            <p className="text-[10px] text-slate-500 leading-normal bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                              {item.result}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* NEW WATCHLIST CREATOR MODAL OVERLAY */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowCreateModal(false)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs"
+            />
+            
+            <motion.form 
+              onSubmit={handleCreateWatchlist}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative bg-white border border-[#E2E8F0] rounded-[24px] shadow-2xl p-5 md:p-6 w-full max-w-sm flex flex-col gap-4 z-10"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-black text-brand-navy">Create Watchlist</h3>
+                <button 
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="p-1 hover:bg-slate-100 rounded-full"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Name */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Watchlist Name</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. Intraday Tech" 
+                  value={newWatchlistName}
+                  onChange={(e) => setNewWatchlistName(e.target.value)}
+                  className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2 text-xs text-brand-navy outline-none focus:border-blue-600"
+                />
+              </div>
+
+              {/* Color */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Color Tag</label>
+                <div className="flex items-center gap-2">
+                  {['Blue', 'Green', 'Purple', 'Orange'].map((col) => (
+                    <button
+                      type="button"
+                      key={col}
+                      onClick={() => setNewWatchlistColor(col)}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-black border transition-colors ${
+                        newWatchlistColor === col 
+                          ? 'bg-brand-navy text-white' 
+                          : 'bg-slate-100 text-[#64748B] hover:bg-slate-200'
+                      }`}
+                    >
+                      {col}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Icon */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Icon</label>
+                <div className="flex items-center gap-2">
+                  {['bookmark', 'trending', 'gem', 'sparkle'].map((ic) => (
+                    <button
+                      type="button"
+                      key={ic}
+                      onClick={() => setNewWatchlistIcon(ic)}
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-colors ${
+                        newWatchlistIcon === ic 
+                          ? 'bg-slate-200 border-slate-400 text-[#0F172A]' 
+                          : 'bg-[#F8FAFC] hover:bg-slate-100 text-slate-500'
+                      }`}
+                    >
+                      {ic === 'bookmark' && <Bookmark className="w-4 h-4" />}
+                      {ic === 'trending' && <TrendingUp className="w-4 h-4" />}
+                      {ic === 'gem' && <Gem className="w-4 h-4" />}
+                      {ic === 'sparkle' && <Sparkles className="w-4 h-4" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Description</label>
+                <textarea 
+                  placeholder="Optional description..."
+                  value={newWatchlistDesc}
+                  onChange={(e) => setNewWatchlistDesc(e.target.value)}
+                  className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2 text-xs text-brand-navy outline-none focus:border-blue-600 h-16 resize-none"
+                />
+              </div>
+
+              <button 
+                type="submit"
+                className="w-full py-2.5 bg-brand-navy hover:bg-slate-800 text-xs font-black text-white rounded-xl shadow-premium mt-1 transition-colors"
+              >
+                Create Watchlist
+              </button>
+            </motion.form>
           </div>
         )}
       </AnimatePresence>

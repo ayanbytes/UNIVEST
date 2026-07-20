@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { Button } from './components/atoms/Button';
@@ -14,6 +14,7 @@ import { ResearchCard } from './components/financial/ResearchCard';
 import type { ResearchCall } from './components/financial/ResearchCard';
 import { IndexCard } from './components/financial/IndexCard';
 import { Info } from 'lucide-react';
+import HomeDashboard from './components/dashboard/HomeDashboard';
 
 // New Screens
 import SplashScreen from './components/molecules/SplashScreen';
@@ -21,7 +22,6 @@ import GetStarted from './components/molecules/GetStarted';
 import LoginWithOtp from './components/molecules/LoginWithOtp';
 import InvestorOnboarding from './components/molecules/InvestorOnboarding';
 import InvestorPersonalization from './components/molecules/InvestorPersonalization';
-import WelcomeContinue from './components/molecules/WelcomeContinue';
 
 // Mock Data
 const MOCK_CALLS: ResearchCall[] = [
@@ -245,6 +245,9 @@ function ShowcaseContent() {
   );
 }
 
+// Kept as an internal component showcase while the signed-in route renders HomeDashboard.
+void ShowcaseContent;
+
 function App() {
   return (
     <ThemeProvider>
@@ -253,14 +256,14 @@ function App() {
           <Route path="/" element={<SplashScreen />} />
           <Route path="/get-started" element={<GetStarted />} />
           <Route path="/login-otp" element={<LoginWithOtp />} />
-          <Route path="/welcome-continue" element={<WelcomeContinue />} />
+          <Route path="/welcome-continue" element={<Navigate to="/login-otp" replace />} />
           <Route path="/onboarding" element={<InvestorOnboarding />} />
           <Route path="/personalization" element={<InvestorPersonalization />} />
           <Route
             path="/design-system"
             element={
               <DashboardLayout>
-                <ShowcaseContent />
+                <HomeDashboard />
               </DashboardLayout>
             }
           />
