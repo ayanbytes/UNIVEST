@@ -434,7 +434,12 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                 </span>
                 <ChevronDown className="h-3.5 w-3.5 text-slate-400 ml-0.5" />
               </button>
-              <UserMenuDropdown isOpen={isUserMenuOpen} onClose={() => setIsUserMenuOpen(false)} />
+              <UserMenuDropdown 
+                isOpen={isUserMenuOpen} 
+                onClose={() => setIsUserMenuOpen(false)} 
+                onNavigateTab={(tab) => setActiveTab(tab)}
+                onOpenWorkspace={() => setWorkspaceOpen(true)}
+              />
             </div>
           </div>
         </header>

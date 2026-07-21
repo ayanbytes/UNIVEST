@@ -9,13 +9,11 @@ import { VerificationStatus } from './VerificationStatus';
 import { BankAccounts } from './BankAccounts';
 import { BrokerAccounts } from './BrokerAccounts';
 import { Documents } from './Documents';
-import { SecuritySettings } from './SecuritySettings';
 import { ActivityTimeline } from './ActivityTimeline';
-import { PreferencesSettings } from './PreferencesSettings';
 
 export const ProfileDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    'Overview' | 'Personal Details' | 'Verification' | 'Bank Accounts' | 'Broker Accounts' | 'Documents' | 'Security' | 'Activity' | 'Preferences'
+    'Overview' | 'Personal Details' | 'Verification' | 'Bank Accounts' | 'Broker Accounts' | 'Documents' | 'Account Activity'
   >('Overview');
 
   const tabs = [
@@ -25,9 +23,7 @@ export const ProfileDashboard: React.FC = () => {
     'Bank Accounts',
     'Broker Accounts',
     'Documents',
-    'Security',
-    'Activity',
-    'Preferences'
+    'Account Activity'
   ] as const;
 
   return (
@@ -41,7 +37,7 @@ export const ProfileDashboard: React.FC = () => {
       {/* 3. Quick Actions Grid */}
       <QuickActions onActionClick={(tab: any) => setActiveTab(tab)} />
 
-      {/* 4. 9 Profile Tabs (Segmented Control) */}
+      {/* 4. 7 Identity Profile Tabs (Segmented Control) */}
       <div className="flex flex-wrap items-center gap-2 p-1.5 bg-white border border-[#E2E8F0] rounded-2xl w-full shadow-sm relative mt-2">
         {tabs.map((tab) => {
           const isActive = activeTab === tab;
@@ -82,9 +78,7 @@ export const ProfileDashboard: React.FC = () => {
             {activeTab === 'Bank Accounts' && <BankAccounts />}
             {activeTab === 'Broker Accounts' && <BrokerAccounts />}
             {activeTab === 'Documents' && <Documents />}
-            {activeTab === 'Security' && <SecuritySettings />}
-            {activeTab === 'Activity' && <ActivityTimeline />}
-            {activeTab === 'Preferences' && <PreferencesSettings />}
+            {activeTab === 'Account Activity' && <ActivityTimeline />}
           </motion.div>
         </AnimatePresence>
       </div>
