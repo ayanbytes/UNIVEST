@@ -20,6 +20,8 @@ import { ResearchDetail } from '../components/dashboard/ResearchDetail';
 import { ReportViewer } from '../components/dashboard/ReportViewer';
 import { AnalystProfileModal } from '../components/dashboard/AnalystProfileModal';
 import { TradeDrawer } from '../components/dashboard/TradeDrawer';
+import { NotificationCenterModal } from '../components/dashboard/NotificationCenterModal';
+import { NewsDetail } from '../components/dashboard/NewsDetail';
 import { AiCopilotModal } from '../components/ai/AiCopilotModal';
 import { MarketIntelligenceCenter } from '../components/dashboard/MarketIntelligenceCenter';
 import { LiveMarketStatusWidget } from '../components/dashboard/LiveMarketStatusWidget';
@@ -115,7 +117,9 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
   const [selectedResearch, setSelectedResearch] = useState<any | null>(null);
   const [selectedReport, setSelectedReport] = useState<any | null>(null);
   const [selectedAnalyst, setSelectedAnalyst] = useState<any | null>(null);
+  const [selectedNews, setSelectedNews] = useState<any | null>(null);
   const [tradeIntent, setTradeIntent] = useState<any | null>(null);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   
   // Custom Watchlists state
   const [customWatchlists, setCustomWatchlists] = useState<CustomWatchlist[]>([
@@ -403,6 +407,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
 
             {/* Notifications Bell */}
             <button 
+              onClick={() => setIsNotificationOpen(true)}
               className="relative grid h-10 w-10 place-items-center rounded-full border border-[#E2E8F0] bg-white text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 shadow-2xs cursor-pointer" 
               aria-label="Notifications"
             >
@@ -496,6 +501,39 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
         onSelectResearch={(res) => setSelectedResearch(res)}
         onTrade={(tr) => setTradeIntent(tr)}
       />
+
+      {/* NOTIFICATION CENTER MODAL & FEED */}
+      <NotificationCenterModal
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+        onSelectStock={(st) => setSelectedStock(st)}
+        onSelectResearch={(res) => setSelectedResearch(res)}
+        onTrade={(tr) => setTradeIntent(tr)}
+        onSelectNews={(nw) => setSelectedNews(nw)}
+      />
+
+      {/* NEWS DETAIL MODAL */}
+      <AnimatePresence>
+        {selectedNews && (
+          <NewsDetail
+            isOpen={true}
+            onClose={() => setSelectedNews(null)}
+            newsItem={selectedNews}
+            onOpenCompany={(sym) => {
+              setSelectedNews(null);
+              setSelectedStock({ symbol: sym, company: sym });
+            }}
+            onOpenResearch={(res) => {
+              setSelectedNews(null);
+              setSelectedResearch(res);
+            }}
+            onTrade={(tr) => {
+              setSelectedNews(null);
+              setTradeIntent(tr);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* PREMIUM RIGHT SLIDE-OVER WORKSPACE DRAWER PANEL */}
       <AnimatePresence>
