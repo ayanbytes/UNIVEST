@@ -24,10 +24,11 @@ import { TradeDrawer } from '../components/dashboard/TradeDrawer';
 import { NotificationCenterModal } from '../components/dashboard/NotificationCenterModal';
 import { NewsDetail } from '../components/dashboard/NewsDetail';
 import { AiCopilotModal } from '../components/ai/AiCopilotModal';
+import { SettingsCenter } from '../components/dashboard/SettingsCenter';
 import { LearningCenter } from '../components/dashboard/LearningCenter';
 import { MarketIntelligenceCenter } from '../components/dashboard/MarketIntelligenceCenter';
 import { LiveMarketStatusWidget } from '../components/dashboard/LiveMarketStatusWidget';
-import { Newspaper, GraduationCap } from 'lucide-react';
+import { Newspaper, GraduationCap, Settings } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 
 interface SidebarItemProps {
@@ -182,6 +183,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
     { name: 'Portfolio', icon: <Briefcase className="w-5 h-5" />, label: 'Portfolio' },
     { name: 'News', icon: <Newspaper className="w-5 h-5" />, label: 'News', badgeCount: 4 },
     { name: 'Academy', icon: <GraduationCap className="w-5 h-5" />, label: 'Academy' },
+    { name: 'Settings', icon: <Settings className="w-5 h-5" />, label: 'Settings' },
     { name: 'Profile', icon: <User className="w-5 h-5" />, label: 'Profile' },
   ];
 
@@ -466,6 +468,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                 onSelectResearch={(res) => setSelectedResearch(res)}
               />
             )}
+            {activeTab === 'Settings' && <SettingsCenter />}
             {activeTab === 'Profile' && <ProfileDashboard />}
           </div>
         </main>
