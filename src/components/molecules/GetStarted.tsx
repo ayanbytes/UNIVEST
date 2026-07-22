@@ -11,17 +11,17 @@ const services = [
 
 export const GetStarted = () => {
   const navigate = useNavigate();
-  const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
 
-  const continueWithMobile = (event: React.FormEvent) => {
+  const continueWithEmail = (event: React.FormEvent) => {
     event.preventDefault();
-    if (mobile.length !== 10) return;
+    if (!email.includes('@')) return;
 
     // This is the client-side stand-in for the future account-lookup endpoint.
     // A number becomes recognised after completing the account-creation flow.
     const savedAccounts = JSON.parse(localStorage.getItem('univest_accounts') || '[]') as string[];
-    const tab = savedAccounts.includes(mobile) ? 'login' : 'signup';
-    navigate(`/login-otp?tab=${tab}&phone=${mobile}`);
+    const tab = savedAccounts.includes(email) ? 'login' : 'signup';
+    navigate(`/login-otp?tab=${tab}&email=${email}`);
   };
 
   return (
@@ -54,12 +54,11 @@ export const GetStarted = () => {
             Professional stock research, AI-driven insights, portfolio intelligence, and smarter investing — all in one secure platform.
           </motion.p>
 
-          <motion.form initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .24, duration: .6 }} onSubmit={continueWithMobile} className="mt-8 max-w-md">
-            <label htmlFor="hero-mobile" className="mb-3 block text-sm font-semibold text-white">Get started with your mobile number</label>
+          <motion.form initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .24, duration: .6 }} onSubmit={continueWithEmail} className="mt-8 max-w-md">
+            <label htmlFor="hero-email" className="mb-3 block text-sm font-semibold text-white">Get started with your email address</label>
             <div className="flex rounded-xl border border-white/20 bg-[#101935]/80 p-1.5 shadow-2xl backdrop-blur-xl transition focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-400/10">
-              <span className="flex items-center border-r border-white/15 px-3 text-sm font-semibold text-slate-300">+91</span>
-              <input id="hero-mobile" value={mobile} onChange={event => setMobile(event.target.value.replace(/\D/g, '').slice(0, 10))} aria-label="Mobile number" className="min-w-0 flex-1 bg-transparent px-3 text-sm text-white outline-none placeholder:text-slate-500" placeholder="Enter 10-digit mobile number" type="tel" inputMode="numeric" />
-              <button type="submit" disabled={mobile.length !== 10} className="grid h-10 w-12 place-items-center rounded-lg bg-[#2879f5] text-white transition hover:bg-[#4c90ff] disabled:cursor-not-allowed disabled:opacity-45" aria-label="Continue"><ArrowRight className="h-5 w-5" /></button>
+              <input id="hero-email" value={email} onChange={event => setEmail(event.target.value)} aria-label="Email address" className="min-w-0 flex-1 bg-transparent px-4 text-sm text-white outline-none placeholder:text-slate-500" placeholder="Enter your email address" type="email" />
+              <button type="submit" disabled={!email.includes('@')} className="grid h-10 w-12 place-items-center rounded-lg bg-[#2879f5] text-white transition hover:bg-[#4c90ff] disabled:cursor-not-allowed disabled:opacity-45" aria-label="Continue"><ArrowRight className="h-5 w-5" /></button>
             </div>
             <p className="mt-3 text-[11px] text-slate-400">We’ll recognise your account and take you to the right place.</p>
           </motion.form>

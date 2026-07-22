@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, Upload, Check, Shield, Eye, EyeOff, ChevronRight } from 'lucide-react';
+import { CreditCard, Upload, Check, Shield, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Button } from '../../components/atoms/Button';
 
 export interface PANData {
   panNumber: string;
@@ -65,14 +66,11 @@ export const PANVerificationStep: React.FC<PANVerificationProps> = ({ initialDat
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="w-full max-w-xl mx-auto space-y-6 font-sans text-slate-100"
+      className="w-full max-w-xl mx-auto space-y-6 font-sans text-slate-900"
     >
-      <div className="text-center mb-6">
-        <div className="w-14 h-14 mx-auto bg-amber-600/20 border border-amber-500/30 rounded-2xl flex items-center justify-center mb-3 text-amber-400">
-          <CreditCard className="w-7 h-7" />
-        </div>
-        <h2 className="text-2xl font-black text-white tracking-tight">PAN Card KYC Verification</h2>
-        <p className="text-xs text-slate-400 font-medium mt-1">
+      <div className="mb-6">
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">PAN Card KYC</h2>
+        <p className="text-sm text-slate-500 font-medium mt-1">
           Mandatory SEBI KYC requirement for stock advisory and demat account linkage.
         </p>
       </div>
@@ -80,11 +78,11 @@ export const PANVerificationStep: React.FC<PANVerificationProps> = ({ initialDat
       <div className="space-y-4">
         {/* PAN Number */}
         <div>
-          <label className="block text-xs font-bold text-slate-300 mb-1.5">
+          <label className="block text-xs font-bold text-slate-700 mb-1.5">
             PAN Number <span className="text-rose-500">*</span>
           </label>
           <div className="relative">
-            <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               maxLength={10}
@@ -94,8 +92,8 @@ export const PANVerificationStep: React.FC<PANVerificationProps> = ({ initialDat
                 setError('');
               }}
               placeholder="ABCDE1234F"
-              className={`w-full pl-10 pr-4 py-3 bg-[#1E293B] border rounded-xl text-xs font-mono font-black text-white placeholder-slate-500 outline-none uppercase transition ${
-                error ? 'border-rose-500' : isVerified ? 'border-emerald-500' : 'border-slate-700 focus:border-blue-500'
+              className={`w-full pl-10 pr-4 py-3 bg-white border rounded-xl text-sm font-mono font-bold text-slate-900 placeholder-slate-400 outline-none uppercase transition ${
+                error ? 'border-rose-500 focus:ring-4 focus:ring-rose-50' : isVerified ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-50'
               }`}
             />
           </div>
@@ -104,12 +102,12 @@ export const PANVerificationStep: React.FC<PANVerificationProps> = ({ initialDat
 
         {/* PAN Card Image Upload */}
         <div>
-          <label className="block text-xs font-bold text-slate-300 mb-1.5">
+          <label className="block text-xs font-bold text-slate-700 mb-1.5">
             Upload Front Photo of PAN Card <span className="text-rose-500">*</span>
           </label>
 
           <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition cursor-pointer ${
-            panImagePreview ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-700 hover:border-blue-500 bg-[#1E293B]/50'
+            panImagePreview ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-blue-500 bg-slate-50'
           }`}>
             <input
               type="file"
@@ -121,16 +119,18 @@ export const PANVerificationStep: React.FC<PANVerificationProps> = ({ initialDat
             <label htmlFor="pan-upload" className="cursor-pointer block">
               {panImagePreview ? (
                 <div className="flex flex-col items-center gap-2">
-                  <img src={panImagePreview} alt="PAN Preview" className="h-32 object-contain rounded-xl border border-slate-700" />
-                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                  <img src={panImagePreview} alt="PAN Preview" className="h-32 object-contain rounded-xl border border-slate-200 shadow-sm" />
+                  <span className="text-xs font-bold text-emerald-600 flex items-center gap-1 mt-2">
                     <Check className="w-4 h-4" /> PAN Image Attached (Click to change)
                   </span>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-2 text-slate-400">
-                  <Upload className="w-8 h-8 text-blue-400" />
-                  <span className="text-xs font-bold text-slate-300">Click to upload PAN Card image</span>
-                  <span className="text-[10px]">JPG or PNG up to 5MB</span>
+                <div className="flex flex-col items-center gap-2 text-slate-500">
+                  <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2">
+                    <Upload className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-bold text-slate-700">Click to upload PAN Card image</span>
+                  <span className="text-[10px] text-slate-500">JPG or PNG up to 5MB</span>
                 </div>
               )}
             </label>
@@ -141,10 +141,10 @@ export const PANVerificationStep: React.FC<PANVerificationProps> = ({ initialDat
         <button
           onClick={handleVerify}
           disabled={isVerifying || isVerified}
-          className={`w-full py-3.5 font-black text-xs rounded-xl transition shadow-md flex items-center justify-center gap-2 ${
+          className={`w-full py-3.5 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 ${
             isVerified 
-              ? 'bg-emerald-600 text-white cursor-default' 
-              : 'bg-blue-600 hover:bg-blue-500 text-white cursor-pointer'
+              ? 'bg-emerald-100 text-emerald-700 cursor-default' 
+              : 'bg-blue-50 hover:bg-blue-100 text-blue-600 cursor-pointer border border-blue-200'
           }`}
         >
           {isVerifying ? (
@@ -163,18 +163,19 @@ export const PANVerificationStep: React.FC<PANVerificationProps> = ({ initialDat
         </button>
       </div>
 
-      <div className="pt-4 flex justify-between gap-4">
-        <button onClick={onBack} className="px-6 py-3 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl cursor-pointer">
+      <div className="pt-4 flex justify-between items-center gap-4">
+        <button onClick={onBack} className="text-sm font-bold text-slate-500 cursor-pointer">
           Back
         </button>
-        <button
+        <Button
           onClick={() => onNext({ panNumber, fullName: 'Omar Khan', dob: '1995-06-15', panImagePreview })}
           disabled={!isVerified}
-          className="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white font-black text-xs rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer"
+          className="px-8 py-3.5 rounded-xl text-sm"
+          icon={<ChevronRight className="w-4 h-4" />}
+          iconPosition="right"
         >
-          <span>Next: Aadhaar Verification</span>
-          <ChevronRight className="w-4 h-4" />
-        </button>
+          Next Step
+        </Button>
       </div>
     </motion.div>
   );

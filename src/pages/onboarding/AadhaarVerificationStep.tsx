@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Fingerprint, Check, Shield, Camera, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Button } from '../../components/atoms/Button';
 
 export interface AadhaarData {
   aadhaarNumber: string;
@@ -71,14 +72,11 @@ export const AadhaarVerificationStep: React.FC<AadhaarVerificationProps> = ({ in
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="w-full max-w-xl mx-auto space-y-6 font-sans text-slate-100"
+      className="w-full max-w-xl mx-auto space-y-6 font-sans text-slate-900"
     >
-      <div className="text-center mb-6">
-        <div className="w-14 h-14 mx-auto bg-orange-600/20 border border-orange-500/30 rounded-2xl flex items-center justify-center mb-3 text-orange-400">
-          <Fingerprint className="w-7 h-7" />
-        </div>
-        <h2 className="text-2xl font-black text-white tracking-tight">Aadhaar Address & ID Verification</h2>
-        <p className="text-xs text-slate-400 font-medium mt-1">
+      <div className="mb-6">
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Aadhaar Address & ID</h2>
+        <p className="text-sm text-slate-500 font-medium mt-1">
           DigiLocker integrated Aadhaar verification for eKYC compliance.
         </p>
       </div>
@@ -86,11 +84,11 @@ export const AadhaarVerificationStep: React.FC<AadhaarVerificationProps> = ({ in
       <div className="space-y-4">
         {/* Aadhaar Number Input */}
         <div>
-          <label className="block text-xs font-bold text-slate-300 mb-1.5">
+          <label className="block text-xs font-bold text-slate-700 mb-1.5">
             Aadhaar Number (12 Digits) <span className="text-rose-500">*</span>
           </label>
           <div className="relative">
-            <Fingerprint className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Fingerprint className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               maxLength={12}
@@ -100,8 +98,8 @@ export const AadhaarVerificationStep: React.FC<AadhaarVerificationProps> = ({ in
                 setError('');
               }}
               placeholder="1234 5678 9012"
-              className={`w-full pl-10 pr-4 py-3 bg-[#1E293B] border rounded-xl text-xs font-mono font-black text-white placeholder-slate-500 outline-none transition ${
-                error ? 'border-rose-500' : isVerified ? 'border-emerald-500' : 'border-slate-700 focus:border-blue-500'
+              className={`w-full pl-10 pr-4 py-3 bg-white border rounded-xl text-sm font-mono font-bold text-slate-900 placeholder-slate-400 outline-none transition ${
+                error ? 'border-rose-500 focus:ring-4 focus:ring-rose-50' : isVerified ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-50'
               }`}
             />
           </div>
@@ -111,19 +109,23 @@ export const AadhaarVerificationStep: React.FC<AadhaarVerificationProps> = ({ in
         {/* Upload Front & Back */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1.5">Front Side Photo *</label>
-            <div className="border-2 border-dashed border-slate-700 bg-[#1E293B]/50 rounded-2xl p-4 text-center cursor-pointer">
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">Front Side Photo *</label>
+            <div className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition ${
+              frontImagePreview ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-blue-500 bg-slate-50'
+            }`}>
               <input type="file" accept="image/*" onChange={(e) => handleFileUpload('front', e)} className="hidden" id="adh-front" />
               <label htmlFor="adh-front" className="cursor-pointer block">
                 {frontImagePreview ? (
                   <div className="flex flex-col items-center gap-1">
-                    <img src={frontImagePreview} alt="Front Preview" className="h-24 object-contain rounded-lg" />
-                    <span className="text-[10px] font-bold text-emerald-400">Front Uploaded</span>
+                    <img src={frontImagePreview} alt="Front Preview" className="h-24 object-contain rounded-lg border border-slate-200 shadow-sm" />
+                    <span className="text-[10px] font-bold text-emerald-600 mt-2 flex items-center gap-1"><Check className="w-3 h-3" /> Front Uploaded</span>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-1 text-slate-400 py-2">
-                    <Camera className="w-6 h-6 text-blue-400" />
-                    <span className="text-xs font-bold">Upload Front</span>
+                  <div className="flex flex-col items-center gap-1 text-slate-500 py-2">
+                    <div className="w-10 h-10 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-1">
+                      <Camera className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-700">Upload Front</span>
                   </div>
                 )}
               </label>
@@ -131,19 +133,23 @@ export const AadhaarVerificationStep: React.FC<AadhaarVerificationProps> = ({ in
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1.5">Back Side Photo *</label>
-            <div className="border-2 border-dashed border-slate-700 bg-[#1E293B]/50 rounded-2xl p-4 text-center cursor-pointer">
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">Back Side Photo *</label>
+            <div className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition ${
+              backImagePreview ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-blue-500 bg-slate-50'
+            }`}>
               <input type="file" accept="image/*" onChange={(e) => handleFileUpload('back', e)} className="hidden" id="adh-back" />
               <label htmlFor="adh-back" className="cursor-pointer block">
                 {backImagePreview ? (
                   <div className="flex flex-col items-center gap-1">
-                    <img src={backImagePreview} alt="Back Preview" className="h-24 object-contain rounded-lg" />
-                    <span className="text-[10px] font-bold text-emerald-400">Back Uploaded</span>
+                    <img src={backImagePreview} alt="Back Preview" className="h-24 object-contain rounded-lg border border-slate-200 shadow-sm" />
+                    <span className="text-[10px] font-bold text-emerald-600 mt-2 flex items-center gap-1"><Check className="w-3 h-3" /> Back Uploaded</span>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-1 text-slate-400 py-2">
-                    <Camera className="w-6 h-6 text-blue-400" />
-                    <span className="text-xs font-bold">Upload Back</span>
+                  <div className="flex flex-col items-center gap-1 text-slate-500 py-2">
+                    <div className="w-10 h-10 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-1">
+                      <Camera className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-700">Upload Back</span>
                   </div>
                 )}
               </label>
@@ -157,35 +163,38 @@ export const AadhaarVerificationStep: React.FC<AadhaarVerificationProps> = ({ in
             type="checkbox"
             checked={consentGiven}
             onChange={(e) => setConsentGiven(e.target.checked)}
-            className="w-4 h-4 rounded border-slate-700 bg-[#1E293B] text-blue-600 focus:ring-blue-500"
+            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
           />
-          <span className="text-xs font-medium text-slate-300">I consent to DigiLocker / UIDAI offline eKYC verification</span>
+          <span className="text-xs font-medium text-slate-600">I consent to DigiLocker / UIDAI offline eKYC verification</span>
         </div>
 
         {/* Verification Trigger */}
         <button
           onClick={handleVerify}
           disabled={isVerifying || isVerified}
-          className={`w-full py-3.5 font-black text-xs rounded-xl transition shadow-md flex items-center justify-center gap-2 ${
-            isVerified ? 'bg-emerald-600 text-white cursor-default' : 'bg-blue-600 hover:bg-blue-500 text-white cursor-pointer'
+          className={`w-full py-3.5 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 ${
+            isVerified 
+              ? 'bg-emerald-100 text-emerald-700 cursor-default' 
+              : 'bg-blue-50 hover:bg-blue-100 text-blue-600 cursor-pointer border border-blue-200'
           }`}
         >
           {isVerifying ? <span>Verifying via DigiLocker...</span> : isVerified ? <><Check className="w-4 h-4" /><span>Aadhaar Verified</span></> : <><Shield className="w-4 h-4" /><span>Verify Aadhaar</span></>}
         </button>
       </div>
 
-      <div className="pt-4 flex justify-between gap-4">
-        <button onClick={onBack} className="px-6 py-3 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl cursor-pointer">
+      <div className="pt-4 flex justify-between gap-4 items-center">
+        <button onClick={onBack} className="text-sm font-bold text-slate-500 cursor-pointer">
           Back
         </button>
-        <button
+        <Button
           onClick={() => onNext({ aadhaarNumber, frontImagePreview, backImagePreview, consentGiven })}
           disabled={!isVerified}
-          className="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white font-black text-xs rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer"
+          className="px-8 py-3.5 rounded-xl text-sm"
+          icon={<ChevronRight className="w-4 h-4" />}
+          iconPosition="right"
         >
-          <span>Next: Bank Account Details</span>
-          <ChevronRight className="w-4 h-4" />
-        </button>
+          Next Step
+        </Button>
       </div>
     </motion.div>
   );

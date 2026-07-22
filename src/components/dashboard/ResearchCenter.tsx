@@ -6,6 +6,7 @@ import {
   LayoutDashboard, Radio, Sparkles, ListFilter, FileText, Share2, ChevronDown,
   RefreshCw, Filter, ArrowUpDown, ShieldCheck, Users, Eye, Sliders
 } from 'lucide-react';
+import api from '../../services/api';
 import { ResearchDetail } from './ResearchDetail';
 import { TradeDrawer } from './TradeDrawer';
 import { ShareModal } from './ShareModal';
@@ -25,6 +26,39 @@ export const ResearchCenter: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'calls' | 'ai-advisors' | 'screeners' | 'reports'>('overview');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isUniversalSearchOpen, setIsUniversalSearchOpen] = useState(false);
+  const [featuredOpportunities, setFeaturedOpportunities] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    const fetchCalls = async () => {
+      try {
+        const response = await api.get('/research/feed');
+        // Map backend response to UI format
+        const formatted = response.data.map((call: any) => ({
+          company: call.company_name || call.symbol,
+          symbol: call.symbol,
+          logo: call.symbol.substring(0, 2).toUpperCase(),
+          exchange: 'NSE',
+          rec: call.recommendation.toUpperCase(),
+          price: '₹' + (call.entry_price_min || '0'), // Mock current price logic
+          entry: `₹${call.entry_price_min} - ₹${call.entry_price_max}`,
+          target: `₹${call.target_price}`,
+          stop: `₹${call.stop_loss}`,
+          return: '10%', // Calculate properly if needed
+          risk: 'Medium',
+          confidence: 85,
+          duration: call.category || 'Positional',
+          sector: 'Equities',
+          summary: call.summary || call.fundamental_notes || 'Research call published.',
+          analyst: 'AI Analyst',
+          time: 'Recently'
+        }));
+        setFeaturedOpportunities(formatted);
+      } catch (error) {
+        console.error("Failed to fetch research feed", error);
+      }
+    };
+    fetchCalls();
+  }, []);
   
   // Interactivity Modals State
   const [selectedResearch, setSelectedResearch] = useState<any | null>(null);

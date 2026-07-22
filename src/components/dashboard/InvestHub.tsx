@@ -34,6 +34,41 @@ export const InvestHub: React.FC<InvestHubProps> = ({
   const [sortOption, setSortOption] = useState<string>('Popularity');
   const [bookmarkedItems, setBookmarkedItems] = useState<Record<string, boolean>>({});
 
+  const [trendingFunds, setTrendingFunds] = useState<any[]>([]);
+  const [trendingIPOs, setTrendingIPOs] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    const fetchMarketplace = async () => {
+      try {
+        const [fundsRes, iposRes] = await Promise.all([
+          api.get('/mutual-funds/'),
+          api.get('/ipos/upcoming')
+        ]);
+        
+        setTrendingFunds(fundsRes.data.map((mf: any) => ({
+          name: mf.fund_name,
+          symbol: mf.id,
+          price: `NAV: ₹${mf.nav}`,
+          change: `${mf.one_year_return || 0}% 1Y`,
+          risk: mf.category || 'Moderate',
+          logo: mf.fund_name.substring(0, 2).toUpperCase()
+        })));
+
+        setTrendingIPOs(iposRes.data.map((ipo: any) => ({
+          name: ipo.company_name,
+          symbol: ipo.id,
+          price: `₹${ipo.issue_price_min} - ${ipo.issue_price_max}`,
+          change: `GMP ₹${ipo.current_gmp || 0}`,
+          status: 'Bidding Open',
+          logo: ipo.company_name.substring(0, 2).toUpperCase()
+        })));
+      } catch (error) {
+        console.error("Failed to fetch marketplace data", error);
+      }
+    };
+    fetchMarketplace();
+  }, []);
+
   // Scroll Container Ref for Minimalist Asset Classes Navigation
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -129,16 +164,6 @@ export const InvestHub: React.FC<InvestHubProps> = ({
     { name: 'HDFC Bank Ltd', symbol: 'HDFCBANK', price: '₹1,682.40', change: '+0.85%', '1m': '+4.2%', risk: 'Low', logo: 'HD' },
     { name: 'Larsen & Toubro Ltd', symbol: 'LT', price: '₹3,456.90', change: '+1.05%', '1m': '+6.8%', risk: 'Low', logo: 'LT' },
     { name: 'Tata Consultancy Services', symbol: 'TCS', price: '₹4,185.10', change: '+0.82%', '1m': '+3.5%', risk: 'Low', logo: 'TC' }
-  ];
-
-  const trendingFunds = [
-    { name: 'Quant Active Fund Direct Growth', symbol: 'QUANT-ACT', price: 'NAV: ₹384.20', change: '+29.2% 3Y', '1m': '+5.4%', risk: 'Moderate', logo: 'QA' },
-    { name: 'Axis Bluechip Fund', symbol: 'AXIS-BLUE', price: 'NAV: ₹58.10', change: '+18.4% 3Y', '1m': '+2.8%', risk: 'Low', logo: 'AB' }
-  ];
-
-  const trendingIPOs = [
-    { name: 'Ola Electric Mobility IPO', symbol: 'OLA-IPO', price: '₹72 - 76', change: 'GMP +18%', status: 'Bidding Open', logo: 'OE' },
-    { name: 'FirstCry India IPO', symbol: 'FIRSTCRY', price: '₹420 - 450', change: 'GMP +24%', status: 'Closing Soon', logo: 'FC' }
   ];
 
   const trendingGold = [
