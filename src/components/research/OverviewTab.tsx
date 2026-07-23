@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   TrendingUp, Radio, Sparkles, FileText, ArrowRight, ShieldCheck, 
   CheckCircle2, Clock, Zap, BarChart3, ChevronRight, Activity, ArrowUpRight
