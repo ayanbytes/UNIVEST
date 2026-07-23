@@ -28,6 +28,7 @@ import { AiCopilotModal } from '../components/ai/AiCopilotModal';
 import { SettingsCenter } from '../components/dashboard/SettingsCenter';
 import { LearningCenter } from '../components/dashboard/LearningCenter';
 import { MarketIntelligenceCenter } from '../components/dashboard/MarketIntelligenceCenter';
+import { useAuth } from '../context/AuthContext';
 import { LiveMarketStatusWidget } from '../components/dashboard/LiveMarketStatusWidget';
 import { AddFundsModal } from '../components/dashboard/AddFundsModal';
 import HomeDashboard from '../components/dashboard/HomeDashboard';
@@ -110,6 +111,9 @@ interface DrawerStock {
 }
 
 export const DashboardLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+  const { user, isAuthenticated, logout } = useAuth();
+  const isLoggedIn = isAuthenticated || !!user || !!localStorage.getItem('access_token');
+
   const [collapsed, setCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('Home');
   const [activeInvestCategory, setActiveInvestCategory] = useState('stocks');
@@ -405,22 +409,6 @@ export const DashboardLayout: React.FC<{ children?: React.ReactNode }> = ({ chil
             {/* Live Market Status Widget */}
             <LiveMarketStatusWidget />
 
-            {/* Quick Access Sign In & Onboarding Buttons */}
-            <button
-              onClick={() => navigate('/onboarding')}
-              className="hidden sm:flex items-center gap-1.5 px-3 h-10 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors text-xs font-black cursor-pointer"
-            >
-              <Shield className="w-3.5 h-3.5 text-emerald-600" />
-              <span>KYC Onboarding</span>
-            </button>
-
-            <button
-              onClick={() => navigate('/login')}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 h-10 rounded-full bg-[#0F172A] text-white hover:bg-slate-800 transition-colors text-xs font-black cursor-pointer shadow-2xs"
-            >
-              <span>Sign In</span>
-            </button>
-
             {/* Notifications Bell */}
             <button 
               onClick={() => setIsNotificationOpen(true)}
@@ -438,9 +426,13 @@ export const DashboardLayout: React.FC<{ children?: React.ReactNode }> = ({ chil
                 className="flex items-center gap-2 h-10 rounded-full border border-[#E2E8F0] bg-white py-1 pl-1 pr-3 text-left transition hover:border-blue-200 hover:bg-slate-50 shadow-2xs cursor-pointer" 
                 aria-label="Open profile menu"
               >
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-blue-600 to-blue-800 text-[10px] font-black text-white">OK</span>
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-blue-600 to-blue-800 text-[10px] font-black text-white">
+                  {user?.full_name ? user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'OK'}
+                </span>
                 <span className="hidden xl:block">
-                  <span className="block text-[11px] font-bold leading-tight text-[#0F172A]">Omar Khan</span>
+                  <span className="block text-[11px] font-bold leading-tight text-[#0F172A]">
+                    {user?.full_name || 'Omar Khan'}
+                  </span>
                 </span>
                 <ChevronDown className="h-3.5 w-3.5 text-slate-400 ml-0.5" />
               </button>
@@ -450,6 +442,9 @@ export const DashboardLayout: React.FC<{ children?: React.ReactNode }> = ({ chil
                 onNavigateTab={(tab) => setActiveTab(tab)}
                 onOpenWorkspace={() => setWorkspaceOpen(true)}
                 onAddFunds={() => setIsAddFundsOpen(true)}
+                isAuthenticated={isLoggedIn}
+                user={user}
+                onLogout={logout}
               />
             </div>
           </div>

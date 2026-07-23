@@ -60,4 +60,23 @@
   .hero-orbit-a { width: 92px; height: 92px; right: -30px; top: -35px; transform: rotate(-18deg); animation: hero-float 5s ease-in-out infinite; }
   .hero-orbit-b { width: 70px; height: 70px; left: -34px; bottom: 3px; animation: hero-float 5s ease-in-out 1s infinite reverse; }
   @keyframes hero-float { 50% { transform: translateY(-13px) rotate(12deg); } }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 22s linear infinite;
+  }
+
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
 }
