@@ -19,8 +19,7 @@ from app.api.v1.mutual_funds import router as mf_router
 from app.api.v1.ipo import router as ipo_router
 from app.api.v1.screener import router as screener_router
 from app.api.v1.analytics import router as analytics_router
-from app.api.v1.ai_advisory import router as ai_router
-from app.api.v1.pms import router as pms_router
+from app.api.v1.market import router as market_router
 
 def create_app() -> FastAPI:
     # Initialize FastAPI application
@@ -62,6 +61,7 @@ def create_app() -> FastAPI:
     app.include_router(ipo_router, prefix="/api/v1/ipos", tags=["IPOs"])
     app.include_router(screener_router, prefix="/api/v1/screener", tags=["Screener"])
     app.include_router(analytics_router, prefix="/api/v1/analytics", tags=["Analytics"])
+    app.include_router(market_router, prefix="/api/v1/market", tags=["Market Data"])
     app.include_router(ai_router, prefix="/api/v1/ai", tags=["AI Advisory"])
     app.include_router(pms_router, prefix="/api/v1/pms", tags=["PMS"])
     app.include_router(health_router, prefix="/health", tags=["Health"])

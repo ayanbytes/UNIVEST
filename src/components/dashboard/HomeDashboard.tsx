@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronDown, TrendingUp, Sparkles, 
   Bookmark, Compass, Award, BookOpen, Play, 
-  Calculator, ShieldCheck, Share2
+  Calculator, ShieldCheck, Share2, Search, Plus, X
 } from 'lucide-react';
 import { FinancialConstellation } from '../ui/FinancialConstellation';
+import { useMarketData } from '../../hooks/useMarketData';
+import { useStockSearch } from '../../hooks/useStockSearch';
 
 // Interfaces for structured data
 interface IndexData {
@@ -80,6 +82,18 @@ interface MarketEvent {
 export const HomeDashboard: React.FC = () => {
   // Collapsible brief state
   const [briefExpanded, setBriefExpanded] = useState(false);
+
+  // Search & Custom Watchlist State
+  const [searchQuery, setSearchQuery] = useState('');
+  const { results: searchResults, isSearching, searchStocks, clearSearch } = useStockSearch();
+  const [customWatchlist, setCustomWatchlist] = useState<string[]>(['TCS', 'INFY']); // Defaults for the custom watchlist
+
+  // Live Market Data Integration
+  // We combine the default symbols and the user's custom watchlist
+  const defaultSymbols = ['ADANIENT', 'BHARTIARTL', 'ITC', 'TATASTEEL', 'WIPRO', 'AXISBANK', 'RELIANCE', 'YESBANK', 'HDFCBANK', 'M&M', 'HAL'];
+  const allSymbolsToFetch = Array.from(new Set([...defaultSymbols, ...customWatchlist]));
+  
+  const { quotes } = useMarketData(allSymbolsToFetch, 3000);
 
   // Active tabs inside widgets
   const [newsCategory, setNewsCategory] = useState('Latest');
@@ -273,7 +287,7 @@ export const HomeDashboard: React.FC = () => {
   const stockMovers = {
     Gainers: [
       { symbol: 'ADANIENT', price: '₹3,242.10', change: '+₹112.40', changePercent: 3.59 },
-      { symbol: 'BHARTIAIRTEL', price: '₹1,420.50', change: '+₹42.80', changePercent: 3.11 },
+      { symbol: 'BHARTIARTL', price: '₹1,420.50', change: '+₹42.80', changePercent: 3.11 },
       { symbol: 'ITC', price: '₹436.90', change: '+₹11.20', changePercent: 2.63 }
     ],
     Losers: [
@@ -592,7 +606,118 @@ export const HomeDashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* SECTION 4: MARKET OVERVIEW & MOVERS */}
+      {/* SECTION 4: STOCK SEARCH & CUSTOM WATCHLIST */}
+      <section className="bg-white border border-[#E2E8F0] rounded-[24px] p-8 shadow-premium transition hover:shadow-premium-lg">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h3 className="text-sm font-black uppercase tracking-wider text-[#0F172A] flex items-center gap-2">
+              <Search className="w-5 h-5 text-blue-600" /> Stock Search & Custom Watchlist
+            </h3>
+            <p className="text-xs font-medium text-[#64748B] mt-1.5">Add any stock to track its live price.</p>
+          </div>
+          <div className="relative flex-1 max-w-md">
+            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+              <Search className="w-4 h-4 text-slate-400 mr-2" />
+              <input 
+                type="text" 
+                className="bg-transparent border-none outline-none text-sm font-bold text-slate-800 placeholder-slate-400 w-full"
+                placeholder="Search stocks on Groww..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (e.target.value.trim().length > 1) {
+                    searchStocks(e.target.value);
+                  } else {
+                    clearSearch();
+                  }
+                }}
+              />
+              {isSearching && (
+                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin ml-2" />
+              )}
+            </div>
+
+            {/* Search Results Dropdown */}
+            {searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-[300px] overflow-y-auto">
+                {searchResults.map((result) => {
+                  const isAdded = customWatchlist.includes(result.symbol);
+                  return (
+                    <div 
+                      key={result.symbol} 
+                      className="flex items-center justify-between p-3 border-b border-slate-50 hover:bg-slate-50 cursor-pointer"
+                      onClick={() => {
+                        if (!isAdded) {
+                          setCustomWatchlist(prev => [...prev, result.symbol]);
+                        }
+                        setSearchQuery('');
+                        clearSearch();
+                      }}
+                    >
+                      <div>
+                        <span className="text-sm font-black text-slate-800">{result.symbol}</span>
+                        <span className="text-[10px] text-slate-500 block">{result.companyName}</span>
+                      </div>
+                      <button 
+                        className={`p-1.5 rounded-lg border ${isAdded ? 'bg-slate-100 border-slate-200 text-slate-400' : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100'}`}
+                        disabled={isAdded}
+                      >
+                        {isAdded ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Custom Watchlist Cards */}
+        {customWatchlist.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {customWatchlist.map((symbol) => {
+              const liveQuote = quotes[symbol];
+              const displayPrice = liveQuote ? `₹${liveQuote.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'Fetching...';
+              
+              let displayChangePct = 0;
+              if (liveQuote && liveQuote.close > 0) {
+                displayChangePct = parseFloat((((liveQuote.ltp - liveQuote.close) / liveQuote.close) * 100).toFixed(2));
+              }
+              const isGain = displayChangePct >= 0;
+
+              return (
+                <div key={symbol} className="bg-slate-50 border border-slate-200/50 p-4 rounded-2xl relative group">
+                  <button 
+                    onClick={() => setCustomWatchlist(prev => prev.filter(s => s !== symbol))}
+                    className="absolute top-2 right-2 p-1 bg-slate-200 text-slate-500 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-100 hover:text-rose-600"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                  <span className="text-xs font-black text-[#0F172A] flex items-center gap-1.5">
+                    {symbol}
+                    {liveQuote && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" title="Live Pricing Active" />}
+                  </span>
+                  <div className="mt-2">
+                    <span className="text-sm font-extrabold text-[#0F172A] block">{displayPrice}</span>
+                    {liveQuote && (
+                      <span className={`text-[10px] font-black block mt-0.5 ${isGain ? 'text-[#16A34A]' : 'text-[#EF4444]'}`}>
+                        {displayChangePct > 0 ? '+' : ''}{displayChangePct}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            <p className="text-sm font-bold text-slate-400">Your custom watchlist is empty.</p>
+            <p className="text-xs text-slate-500 mt-1">Search for a stock above to add it to your live feed.</p>
+          </div>
+        )}
+      </section>
+
+      {/* SECTION 5: MARKET OVERVIEW & MOVERS */}
       <section className="grid grid-cols-1 lg:grid-cols-[1.18fr_.82fr] gap-8">
         
         {/* Left Part: Market Indices & Movers */}
@@ -642,17 +767,33 @@ export const HomeDashboard: React.FC = () => {
             {/* Movers Listing */}
             <div className="flex flex-col gap-2.5 mt-4">
               {stockMovers[moverTab].map((mover) => {
-                const isGain = mover.changePercent >= 0;
+                const liveQuote = quotes[mover.symbol];
+                
+                // Determine price and change to display
+                const displayPrice = liveQuote 
+                  ? `₹${liveQuote.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                  : mover.price;
+                  
+                let displayChangePct = mover.changePercent;
+                if (liveQuote && liveQuote.close > 0) {
+                  displayChangePct = parseFloat((((liveQuote.ltp - liveQuote.close) / liveQuote.close) * 100).toFixed(2));
+                }
+                
+                const isGain = displayChangePct >= 0;
+                
                 return (
                   <div key={mover.symbol} className="flex items-center justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
                     <div>
-                      <span className="text-xs font-black text-[#0F172A] block">{mover.symbol}</span>
+                      <span className="text-xs font-black text-[#0F172A] flex items-center gap-1.5">
+                        {mover.symbol}
+                        {liveQuote && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" title="Live Pricing Active" />}
+                      </span>
                       {'extra' in mover && <span className="text-[8px] text-slate-400 block mt-0.5">{mover.extra}</span>}
                     </div>
                     <div className="text-right">
-                      <span className="text-xs font-extrabold text-[#0F172A] block">{mover.price}</span>
+                      <span className="text-xs font-extrabold text-[#0F172A] block">{displayPrice}</span>
                       <span className={`text-[10px] font-black block ${isGain ? 'text-[#16A34A]' : 'text-[#EF4444]'}`}>
-                        {mover.changePercent > 0 ? '+' : ''}{mover.changePercent}%
+                        {displayChangePct > 0 ? '+' : ''}{displayChangePct}%
                       </span>
                     </div>
                   </div>

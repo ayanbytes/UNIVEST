@@ -27,6 +27,7 @@ class OtpService:
     async def generate_and_send_otp(self, email: str) -> bool:
         """Generates a 6-digit OTP and sends it via SMTP."""
         self._cleanup_expired_otps()
+        email = email.lower().strip()
         
         # Generate 6-digit OTP
         otp = f"{random.randint(0, 999999):06d}"
@@ -89,15 +90,20 @@ class OtpService:
     def verify_otp(self, email: str, otp: str, delete: bool = True) -> bool:
         """Verifies the provided OTP against the in-memory store."""
         self._cleanup_expired_otps()
+        email = email.lower().strip()
+        otp = str(otp).strip()
         
         record = _otp_store.get(email)
         if not record:
+            logger.warning(f"OTP verification failed: No record found for {email}")
             return False
             
         if record["otp"] == otp:
             # Delete after successful verification to prevent reuse (unless delete=False)
             if delete:
                 del _otp_store[email]
+            logger.info(f"OTP verified successfully for {email}")
             return True
             
+        logger.warning(f"OTP verification failed for {email}: Invalid OTP")
         return False

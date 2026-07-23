@@ -25,6 +25,16 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     FROM_EMAIL: str = ""
 
+    # Broker Integration APIs
+    GROW_API_KEY: Optional[str] = None
+    GROW_API_SECRET: Optional[str] = None
+    ANGELONE_API_KEY: Optional[str] = None
+    ANGELONE_API_SECRET: Optional[str] = None
+    UPSTOX_API_KEY: Optional[str] = None
+    UPSTOX_API_SECRET: Optional[str] = None
+    ZERODHA_API_KEY: Optional[str] = None
+    ZERODHA_API_SECRET: Optional[str] = None
+
     model_config = SettingsConfigDict(
         env_file=".env", 
         env_file_encoding="utf-8", 
