@@ -14,6 +14,8 @@ interface UserMenuDropdownProps {
   onAddFunds?: () => void;
   onSwitchAccount?: () => void;
   onLogout?: () => void;
+  isAuthenticated?: boolean;
+  user?: any;
 }
 
 export const UserMenuDropdown: React.FC<UserMenuDropdownProps> = ({
@@ -22,11 +24,15 @@ export const UserMenuDropdown: React.FC<UserMenuDropdownProps> = ({
   onNavigateTab,
   onAddFunds,
   onSwitchAccount,
-  onLogout
+  onLogout,
+  isAuthenticated,
+  user
 }) => {
   const navigate = useNavigate();
 
   if (!isOpen) return null;
+
+  const isUserAuthenticated = isAuthenticated ?? (!!user || !!localStorage.getItem('access_token'));
 
   const handleAddFunds = () => {
     onClose();
@@ -51,6 +57,7 @@ export const UserMenuDropdown: React.FC<UserMenuDropdownProps> = ({
     if (onLogout) {
       onLogout();
     } else {
+      localStorage.removeItem('access_token');
       toast.success('Logged out successfully');
       navigate('/login');
     }
@@ -105,67 +112,73 @@ export const UserMenuDropdown: React.FC<UserMenuDropdownProps> = ({
 
           {/* MENU ACTIONS */}
           <div className="flex flex-col gap-0.5 border-t border-slate-100 pt-2">
-            {/* KYC Onboarding */}
+            {/* AI Personalization */}
             <button
               onClick={() => {
                 onClose();
-                navigate('/onboarding');
+                navigate('/personalization');
               }}
-              className="w-full px-3 py-2 rounded-xl hover:bg-emerald-50 text-emerald-700 font-bold text-xs transition flex items-center justify-between cursor-pointer"
+              className="w-full px-3 py-2 rounded-xl hover:bg-blue-50 text-[#0F172A] font-bold text-xs transition flex items-center justify-between cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>KYC & Document Onboarding</span>
+                <Plus className="w-4 h-4 text-blue-600 rotate-45" />
+                <span>AI Investor Personalization</span>
               </div>
             </button>
 
-            {/* Login Screen */}
-            <button
-              onClick={() => {
-                onClose();
-                navigate('/login');
-              }}
-              className="w-full px-3 py-2 rounded-xl hover:bg-blue-50 text-blue-600 font-bold text-xs transition flex items-center justify-between cursor-pointer"
-            >
-              <div className="flex items-center gap-2.5">
-                <KeyRound className="w-4 h-4 text-blue-500" />
-                <span>Sign In / Login</span>
-              </div>
-            </button>
+            {!isUserAuthenticated ? (
+              <>
+                {/* Login Screen */}
+                <button
+                  onClick={() => {
+                    onClose();
+                    navigate('/login');
+                  }}
+                  className="w-full px-3 py-2 rounded-xl hover:bg-blue-50 text-blue-600 font-bold text-xs transition flex items-center justify-between cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <KeyRound className="w-4 h-4 text-blue-500" />
+                    <span>Sign In / Login</span>
+                  </div>
+                </button>
 
-            {/* Create Account */}
-            <button
-              onClick={() => {
-                onClose();
-                navigate('/signup');
-              }}
-              className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 text-slate-700 font-bold text-xs transition flex items-center justify-between cursor-pointer"
-            >
-              <div className="flex items-center gap-2.5">
-                <UserCheck className="w-4 h-4 text-slate-500" />
-                <span>Register New Account</span>
-              </div>
-            </button>
+                {/* Create Account */}
+                <button
+                  onClick={() => {
+                    onClose();
+                    navigate('/signup');
+                  }}
+                  className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 text-slate-700 font-bold text-xs transition flex items-center justify-between cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <UserCheck className="w-4 h-4 text-slate-500" />
+                    <span>Register New Account</span>
+                  </div>
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Switch Accounts */}
+                <button
+                  onClick={handleSwitchAccount}
+                  className="w-full px-3 py-2.5 rounded-xl hover:bg-slate-100 text-[#0F172A] font-bold text-xs transition flex items-center justify-between cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <RefreshCcw className="w-4 h-4 text-slate-500" />
+                    <span>Switch Accounts</span>
+                  </div>
+                </button>
 
-            {/* 3. SWITCH ACCOUNTS */}
-            <button
-              onClick={handleSwitchAccount}
-              className="w-full px-3 py-2.5 rounded-xl hover:bg-slate-100 text-[#0F172A] font-bold text-xs transition flex items-center justify-between cursor-pointer"
-            >
-              <div className="flex items-center gap-2.5">
-                <RefreshCcw className="w-4 h-4 text-slate-500" />
-                <span>Switch Accounts</span>
-              </div>
-            </button>
-
-            {/* 4. LOGOUT */}
-            <button
-              onClick={handleLogout}
-              className="w-full px-3 py-2.5 rounded-xl hover:bg-rose-50 text-rose-600 font-black text-xs transition flex items-center gap-2.5 cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Logout</span>
-            </button>
+                {/* Logout */}
+                <button
+                  onClick={handleLogout}
+                  className="w-full px-3 py-2.5 rounded-xl hover:bg-rose-50 text-rose-600 font-black text-xs transition flex items-center gap-2.5 cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              </>
+            )}
           </div>
         </motion.div>
       </div>

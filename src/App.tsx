@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import HomeDashboard from './components/dashboard/HomeDashboard';
 import { Button } from './components/atoms/Button';
@@ -31,6 +32,7 @@ import ResetPassword from './pages/ResetPassword';
 import OnboardingFlowContainer from './pages/onboarding/OnboardingFlowContainer';
 import AnalystDashboard from './pages/admin/AnalystDashboard';
 import Pricing from './pages/Pricing';
+import LandingPage from './pages/LandingPage';
 
 // Mock Data for Design System Showcase
 const MOCK_CALLS: ResearchCall[] = [
@@ -169,54 +171,57 @@ function ShowcaseContent() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Main Dashboard as default primary route */}
-          <Route
-            path="/"
-            element={
-              <DashboardLayout>
-                <HomeDashboard />
-              </DashboardLayout>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <DashboardLayout>
-                <HomeDashboard />
-              </DashboardLayout>
-            }
-          />
-          <Route
-            path="/design-system"
-            element={
-              <DashboardLayout>
-                <ShowcaseContent />
-              </DashboardLayout>
-            }
-          />
-          
-          {/* Onboarding & Authentication Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+    <AuthProvider>
+      <ThemeProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Main Dashboard as default primary route */}
+            <Route
+              path="/"
+              element={
+                <DashboardLayout>
+                  <HomeDashboard />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <DashboardLayout>
+                  <HomeDashboard />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/design-system"
+              element={
+                <DashboardLayout>
+                  <ShowcaseContent />
+                </DashboardLayout>
+              }
+            />
+            
+            {/* Onboarding & Authentication Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
-          <Route path="/splash" element={<SplashScreen />} />
-          <Route path="/get-started" element={<GetStarted />} />
-          <Route path="/login-otp" element={<LoginWithOtp />} />
-          <Route path="/onboarding" element={<OnboardingFlowContainer />} />
-          <Route path="/personalization" element={<InvestorPersonalization />} />
-          <Route path="/pricing" element={<DashboardLayout><Pricing /></DashboardLayout>} />
-          <Route path="/analyst" element={<DashboardLayout><AnalystDashboard /></DashboardLayout>} />
+            <Route path="/splash" element={<SplashScreen />} />
+            <Route path="/get-started" element={<GetStarted />} />
+            <Route path="/login-otp" element={<LoginWithOtp />} />
+            <Route path="/landing" element={<LandingPage />} />
+            <Route path="/onboarding" element={<OnboardingFlowContainer />} />
+            <Route path="/personalization" element={<InvestorPersonalization />} />
+            <Route path="/pricing" element={<DashboardLayout><Pricing /></DashboardLayout>} />
+            <Route path="/analyst" element={<DashboardLayout><AnalystDashboard /></DashboardLayout>} />
 
-          {/* Fallback redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </ThemeProvider>
+            {/* Fallback redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 
