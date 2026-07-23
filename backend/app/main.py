@@ -6,6 +6,7 @@ from app.middleware.logging import RequestLoggingMiddleware
 from app.exceptions.handlers import add_exception_handlers
 from app.api.v1.auth import router as auth_router
 from app.api.v1.users import router as users_router
+from app.api.v1.subscriptions import router as subscriptions_router
 from app.api.v1.health import router as health_router
 from app.api.v1.research import router as research_router
 from app.api.v1.broker import router as broker_router
@@ -17,6 +18,9 @@ from app.api.v1.pms import router as pms_router
 from app.api.v1.mutual_funds import router as mf_router
 from app.api.v1.ipo import router as ipo_router
 from app.api.v1.screener import router as screener_router
+from app.api.v1.analytics import router as analytics_router
+from app.api.v1.ai_advisory import router as ai_router
+from app.api.v1.pms import router as pms_router
 
 def create_app() -> FastAPI:
     # Initialize FastAPI application
@@ -46,6 +50,7 @@ def create_app() -> FastAPI:
     # Include API routers
     app.include_router(auth_router, prefix="/api/v1/auth", tags=["Auth"])
     app.include_router(users_router, prefix="/api/v1/users", tags=["Users"])
+    app.include_router(subscriptions_router, prefix="/api/v1/subscriptions", tags=["Subscriptions"])
     app.include_router(research_router, prefix="/api/v1/research", tags=["Research"])
     app.include_router(broker_router, prefix="/api/v1/broker", tags=["Broker"])
     app.include_router(orders_router, prefix="/api/v1/orders", tags=["Orders"])
@@ -56,6 +61,9 @@ def create_app() -> FastAPI:
     app.include_router(mf_router, prefix="/api/v1/mutual-funds", tags=["Mutual Funds"])
     app.include_router(ipo_router, prefix="/api/v1/ipos", tags=["IPOs"])
     app.include_router(screener_router, prefix="/api/v1/screener", tags=["Screener"])
+    app.include_router(analytics_router, prefix="/api/v1/analytics", tags=["Analytics"])
+    app.include_router(ai_router, prefix="/api/v1/ai", tags=["AI Advisory"])
+    app.include_router(pms_router, prefix="/api/v1/pms", tags=["PMS"])
     app.include_router(health_router, prefix="/health", tags=["Health"])
 
     @app.on_event("startup")

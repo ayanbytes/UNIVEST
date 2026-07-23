@@ -4,6 +4,7 @@ import {
   CheckCircle2, Clock, Zap, BarChart3, ChevronRight, Activity, ArrowUpRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import api from '../../services/api';
 
 interface OverviewTabProps {
   onNavigateTab: (tabId: string) => void;
@@ -16,6 +17,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   onOpenAiAdvisor,
   onSelectResearchCall
 }) => {
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const { data } = await api.get('/analytics/leaderboard');
+        setLeaderboard(data);
+      } catch (err) {
+        console.error("Failed to fetch leaderboard", err);
+      }
+    };
+    fetchLeaderboard();
+  }, []);
+
   const stats = [
     { title: 'Active Calls', value: '12', trend: '+2 this week', icon: Radio, color: 'text-rose-600 bg-rose-50 border-rose-200' },
     { title: 'Calls This Month', value: '28', trend: '+18% vs June', icon: TrendingUp, color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
@@ -144,29 +159,66 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       </div>
 
       {/* 1.3 RECENT ACTIVITY FEED */}
-      <div className="bg-white border border-[#E2E8F0] rounded-[24px] p-6 shadow-xs">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-black text-sm text-[#0F172A] flex items-center gap-2">
-            <Clock className="w-4 h-4 text-slate-500" /> Live Research Feed & System Updates
-          </h3>
-          <span className="text-xs font-bold text-slate-400">Updated just now</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-[#E2E8F0] rounded-[24px] p-6 shadow-xs">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-black text-sm text-[#0F172A] flex items-center gap-2">
+              <Clock className="w-4 h-4 text-slate-500" /> Live Research Feed & Updates
+            </h3>
+            <span className="text-xs font-bold text-slate-400">Updated just now</span>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {recentActivity.map((act, i) => (
+              <div key={i} className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-blue-600" />
+                  <div>
+                    <span className="font-black text-xs text-[#0F172A] block">{act.title}</span>
+                    <span className="text-[10px] text-slate-500 font-medium">{act.time}</span>
+                  </div>
+                </div>
+                <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase ${act.color}`}>
+                  {act.badge}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="flex flex-col gap-3">
-          {recentActivity.map((act, i) => (
-            <div key={i} className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-blue-600" />
-                <div>
-                  <span className="font-black text-xs text-[#0F172A] block">{act.title}</span>
-                  <span className="text-[10px] text-slate-500 font-medium">{act.time}</span>
+        {/* 1.4 ANALYST LEADERBOARD */}
+        <div className="bg-white border border-[#E2E8F0] rounded-[24px] p-6 shadow-xs">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-black text-sm text-[#0F172A] flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-500" /> Top Analysts Leaderboard
+            </h3>
+            <span className="text-[10px] font-bold text-slate-400">By Accuracy & ROI</span>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {leaderboard.map((analyst: any, i: number) => (
+              <div key={i} className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-black text-xs">
+                    #{analyst.rank}
+                  </div>
+                  <div>
+                    <span className="font-black text-sm text-[#0F172A] block">{analyst.name}</span>
+                    <span className="text-[10px] text-slate-500 font-medium">{analyst.specialty} • {analyst.calls_made} Calls</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="font-black text-sm text-emerald-600 block">{analyst.accuracy}% Win</span>
+                  <span className="text-[10px] font-bold text-slate-500">Avg ROI: {analyst.avg_roi}%</span>
                 </div>
               </div>
-              <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase ${act.color}`}>
-                {act.badge}
-              </span>
-            </div>
-          ))}
+            ))}
+            {leaderboard.length === 0 && (
+              <div className="p-4 text-center text-sm font-bold text-slate-400">
+                Loading Leaderboard...
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ import { PortfolioPerformance } from './PortfolioPerformance';
 import { PortfolioAllocation } from './PortfolioAllocation';
 import { PortfolioHistory } from './PortfolioHistory';
 import { AiPortfolioReviewModal } from './AiPortfolioReviewModal';
+import api from '../../services/api';
 
 export interface PortfolioDashboardProps {
   onSelectStock?: (stock: any) => void;
@@ -22,8 +23,27 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'Overview' | 'Holdings' | 'Performance' | 'Allocation' | 'History'>('Overview');
   const [isAiReviewOpen, setIsAiReviewOpen] = useState(false);
+  const [portfolioData, setPortfolioData] = useState<any>(null);
+
+  React.useEffect(() => {
+    const fetchPortfolio = async () => {
+      try {
+        const { data } = await api.get('/portfolio/');
+        setPortfolioData(data);
+      } catch (err) {
+        console.error("Failed to load portfolio", err);
+      }
+    };
+    fetchPortfolio();
+  }, []);
 
   const tabs = ['Overview', 'Holdings', 'Performance', 'Allocation', 'History'] as const;
+
+  // Formatters
+  const formatVal = (val: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
+  const pVal = portfolioData ? portfolioData.current_value : 842150;
+  const pnl = portfolioData ? portfolioData.unrealized_pnl : 142600;
+  const pnlPerc = portfolioData ? portfolioData.unrealized_pnl_percentage : 20.3;
 
   return (
     <div className="flex flex-col gap-6 w-full animate-in fade-in duration-500 pb-16">
@@ -36,7 +56,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({
         <div className="flex flex-wrap items-center gap-6 text-xs">
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase block">Portfolio Value</span>
-            <span className="text-base font-black text-[#0F172A]">₹8,42,150</span>
+            <span className="text-base font-black text-[#0F172A]">{formatVal(pVal)}</span>
           </div>
 
           <div className="h-6 w-px bg-slate-200 hidden sm:block" />
@@ -52,7 +72,9 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({
 
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase block">Overall Returns</span>
-            <span className="text-sm font-black text-emerald-600">+₹1,42,600 (+20.3%)</span>
+            <span className={`text-sm font-black ${pnl >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {pnl >= 0 ? '+' : ''}{formatVal(pnl)} ({pnl >= 0 ? '+' : ''}{pnlPerc.toFixed(2)}%)
+            </span>
           </div>
 
           <div className="h-6 w-px bg-slate-200 hidden md:block" />

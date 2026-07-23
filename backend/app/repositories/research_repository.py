@@ -21,6 +21,12 @@ class ResearchRepository:
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
+    async def get_all_calls(self, limit: int = 100, skip: int = 0) -> List[ResearchCall]:
+        query = select(ResearchCall).order_by(ResearchCall.created_at.desc()).offset(skip).limit(limit)
+        
+        result = await self.session.execute(query)
+        return list(result.scalars().all())
+
     async def create_call(self, call: ResearchCall) -> ResearchCall:
         self.session.add(call)
         await self.session.commit()

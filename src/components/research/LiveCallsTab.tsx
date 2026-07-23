@@ -142,14 +142,16 @@ export const MOCK_RESEARCH_CALLS: ResearchCallItem[] = [
   }
 ];
 
-interface LiveCallsTabProps {
-  onSelectCall: (call: ResearchCallItem) => void;
-  onTradeCall: (call: ResearchCallItem) => void;
+export interface LiveCallsTabProps {
+  onSelectCall?: (call: ResearchCallItem) => void;
+  onTradeCall?: (call: ResearchCallItem) => void;
+  calls?: ResearchCallItem[];
 }
 
 export const LiveCallsTab: React.FC<LiveCallsTabProps> = ({
   onSelectCall,
-  onTradeCall
+  onTradeCall,
+  calls = []
 }) => {
   const [recFilter, setRecFilter] = useState('All');
   const [riskFilter, setRiskFilter] = useState('All');
@@ -157,9 +159,11 @@ export const LiveCallsTab: React.FC<LiveCallsTabProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 4;
+  
+  const activeData = calls.length > 0 ? calls : MOCK_RESEARCH_CALLS;
 
   const filteredCalls = useMemo(() => {
-    return MOCK_RESEARCH_CALLS.filter((call) => {
+    return activeData.filter((call) => {
       const matchesRec = recFilter === 'All' || call.recommendation === recFilter;
       const matchesRisk = riskFilter === 'All' || call.riskLevel === riskFilter;
       const matchesHorizon = horizonFilter === 'All' || call.horizon === horizonFilter;

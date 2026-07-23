@@ -6,6 +6,7 @@ import {
   Sparkles, RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 interface TradeDrawerProps {
   isOpen: boolean;
@@ -82,13 +83,26 @@ export const TradeDrawer: React.FC<TradeDrawerProps> = ({ isOpen, onClose, resea
     setStep('review');
   };
 
-  const handleConfirmOrder = () => {
+  const handleConfirmOrder = async () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await api.post('/orders/place', {
+        broker_account_id: "00000000-0000-0000-0000-000000000000", // Would be fetched from user's connected brokers
+        symbol: symbol,
+        side: orderAction,
+        order_type: orderType,
+        quantity: quantity,
+        price: orderType === 'MARKET' ? null : limitPrice,
+        trigger_price: null
+      });
       setStep('success');
       toast.success(`Order executed! ${orderAction} ${quantity} ${symbol}`);
-    }, 1200);
+    } catch (err) {
+      console.error(err);
+      toast.error('Order execution failed');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

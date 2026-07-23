@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 export const ScreenerTab: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState('Momentum Stocks');
@@ -22,12 +23,40 @@ export const ScreenerTab: React.FC = () => {
     { name: 'High Dividend', count: 19, desc: 'Yield > 4% & Stable Cash Flow' },
   ];
 
-  const results = [
-    { symbol: 'RELIANCE', company: 'Reliance Industries', price: '₹2,934.50', change: '+1.25%', rsi: 64.2, pe: 24.2, volume: '2.4M' },
-    { symbol: 'TATASTEEL', company: 'Tata Steel Limited', price: '₹147.20', change: '+2.40%', rsi: 68.5, pe: 14.1, volume: '8.1M' },
-    { symbol: 'HDFCBANK', company: 'HDFC Bank Ltd', price: '₹1,682.40', change: '+0.85%', rsi: 55.1, pe: 18.6, volume: '4.2M' },
-    { symbol: 'LT', company: 'Larsen & Toubro', price: '₹3,456.90', change: '+1.05%', rsi: 61.8, pe: 28.5, volume: '1.8M' },
-  ];
+  const [screenerResults, setScreenerResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Mock templates and rules logic for UI demonstration remains.
+  // We'll replace the hardcoded results with data fetched from the API.
+
+  const handleRunScreener = async () => {
+    setIsLoading(true);
+    try {
+      const { data } = await api.post('/screener/', {
+        filters: screenerRules.map(r => ({
+          indicator: r.field,
+          operator: r.operator,
+          value: parseFloat(r.value.replace(/,/g, '')) || 0
+        }))
+      });
+      // Map API response to UI shape
+      setScreenerResults(data.map((item: any) => ({
+        symbol: item.symbol,
+        company: item.company_name,
+        price: `₹${item.current_price.toFixed(2)}`,
+        change: '+1.5%', // Mock change for now since backend doesn't return it
+        rsi: item.indicator_values['RSI (14)']?.toFixed(1) || '--',
+        pe: item.indicator_values['P/E Ratio']?.toFixed(1) || '--',
+        volume: '1.2M' // Mock volume
+      })));
+      toast.success(`Found ${data.length} matches`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to run screener');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleAddRule = () => {
     setScreenerRules((prev) => [
@@ -106,10 +135,11 @@ export const ScreenerTab: React.FC = () => {
           </div>
 
           <button
-            onClick={() => toast.success(`Applied ${screenerRules.length} custom screener rules`)}
-            className="w-full mt-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs transition shadow-sm cursor-pointer"
+            onClick={handleRunScreener}
+            disabled={isLoading}
+            className="w-full mt-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs transition shadow-sm cursor-pointer disabled:opacity-50"
           >
-            Run Custom Screener
+            {isLoading ? 'Running...' : 'Run Custom Screener'}
           </button>
         </div>
 
@@ -118,7 +148,7 @@ export const ScreenerTab: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-black text-sm text-[#0F172A]">Screener Matches ({results.length})</h3>
+                <h3 className="font-black text-sm text-[#0F172A]">Screener Matches ({screenerResults.length})</h3>
                 <span className="text-[10px] font-bold text-slate-400">Template: {selectedTemplate}</span>
               </div>
               <button
@@ -142,7 +172,7 @@ export const ScreenerTab: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {results.map((res) => (
+                  {screenerResults.map((res) => (
                     <tr key={res.symbol} className="hover:bg-slate-50 transition-colors">
                       <td className="py-3 px-4 font-black text-[#0F172A]">
                         {res.symbol}
@@ -155,6 +185,13 @@ export const ScreenerTab: React.FC = () => {
                       <td className="py-3 px-4 font-bold text-slate-500">{res.volume}</td>
                     </tr>
                   ))}
+                  {screenerResults.length === 0 && !isLoading && (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-400 font-bold">
+                        No matches found. Run the screener to see results.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

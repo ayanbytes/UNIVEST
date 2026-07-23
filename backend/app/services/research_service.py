@@ -51,3 +51,6 @@ class ResearchService:
 
     async def get_feed(self, limit: int = 50, skip: int = 0):
         return await self.research_repo.get_published_calls(limit, skip)
+
+    async def get_all_calls(self, limit: int = 50, skip: int = 0):
+        return await self.research_repo.get_all_calls(limit, skip)

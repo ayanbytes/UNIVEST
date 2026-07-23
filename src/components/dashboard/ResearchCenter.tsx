@@ -155,6 +155,7 @@ export const ResearchCenter: React.FC = () => {
           <LiveCallsTab
             onSelectCall={(call) => setSelectedResearch(call)}
             onTradeCall={(call) => setTradeIntent(call)}
+            calls={featuredOpportunities}
           />
         )}
         {activeTab === 'ai-advisors' && (

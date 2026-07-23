@@ -29,6 +29,8 @@ import SignUp from './pages/SignUp';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import OnboardingFlowContainer from './pages/onboarding/OnboardingFlowContainer';
+import AnalystDashboard from './pages/admin/AnalystDashboard';
+import Pricing from './pages/Pricing';
 
 // Mock Data for Design System Showcase
 const MOCK_CALLS: ResearchCall[] = [
@@ -207,6 +209,8 @@ function App() {
           <Route path="/login-otp" element={<LoginWithOtp />} />
           <Route path="/onboarding" element={<OnboardingFlowContainer />} />
           <Route path="/personalization" element={<InvestorPersonalization />} />
+          <Route path="/pricing" element={<DashboardLayout><Pricing /></DashboardLayout>} />
+          <Route path="/analyst" element={<DashboardLayout><AnalystDashboard /></DashboardLayout>} />
 
           {/* Fallback redirect */}
           <Route path="*" element={<Navigate to="/" replace />} />

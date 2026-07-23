@@ -57,3 +57,15 @@ async def get_research_feed(
     Fetch the published research calls feed for users.
     """
     return await research_service.get_feed(limit=limit, skip=skip)
+
+@router.get("/dashboard", response_model=list[ResearchCallResponse])
+async def get_research_dashboard(
+    skip: int = 0,
+    limit: int = 50,
+    current_user: User = Depends(get_current_analyst_or_admin),
+    research_service: ResearchService = Depends(get_research_service)
+):
+    """
+    Fetch all research calls (including drafts) for the analyst/admin dashboard.
+    """
+    return await research_service.get_all_calls(limit=limit, skip=skip)

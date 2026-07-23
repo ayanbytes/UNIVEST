@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 export interface AiAdvisorConfig {
   id: string;
@@ -312,7 +313,7 @@ export const AiAdvisorWorkspaceModal: React.FC<AiAdvisorWorkspaceModalProps> = (
 
   const IconComponent = advisor.icon;
 
-  const handleSendMessage = (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || inputMessage).trim();
     if (!query) return;
 
@@ -326,44 +327,39 @@ export const AiAdvisorWorkspaceModal: React.FC<AiAdvisorWorkspaceModalProps> = (
     if (!textToSend) setInputMessage('');
     setIsThinking(true);
 
-    // Simulate AI Advisor Intelligence lookup
-    setTimeout(() => {
-      setIsThinking(false);
-
-      let responseText = `I have analyzed "${query}" using live market data algorithms and ${advisor.name} compliance models.`;
-      let related: any[] = [];
-      let visual: string | undefined = undefined;
-
-      if (query.toLowerCase().includes('nifty') || query.toLowerCase().includes('rally')) {
-        responseText = 'NIFTY is maintaining a strong bullish trend above the 20-day EMA at 24,450. Banking and IT stocks are leading today with institutional net buying of +₹1,850 Cr.';
-        related = [{ symbol: 'RELIANCE', company: 'Reliance Industries', price: '₹2,934.50', change: '+1.25%', positive: true }];
-        visual = 'heatmap';
-      } else if (query.toLowerCase().includes('reliance') || query.toLowerCase().includes('valuation') || query.toLowerCase().includes('stock')) {
-        responseText = 'Reliance Industries is showing healthy valuation metrics with a forward P/E of 23.5x. Retail footfalls grew 18% YoY and Jio ARPU reached ₹184. Target consensus is ₹3,280.';
-        related = [{ symbol: 'RELIANCE', company: 'Reliance Industries', price: '₹2,934.50', change: '+1.25%', positive: true }];
-        visual = 'fundamentals';
-      } else if (query.toLowerCase().includes('rsi') || query.toLowerCase().includes('chart') || query.toLowerCase().includes('breakout')) {
-        responseText = 'Technical scan indicates a bullish MACD crossover on 4-hour timeframe. Key resistance level sits at ₹4,200 with immediate support established at ₹4,110.';
-        related = [{ symbol: 'TCS', company: 'Tata Consultancy Services', price: '₹4,185.10', change: '-0.42%', positive: false }];
-        visual = 'chart';
-      } else if (query.toLowerCase().includes('sip') || query.toLowerCase().includes('crore') || query.toLowerCase().includes('goal')) {
-        responseText = 'To accumulate ₹1 Crore in 10 years at an expected 14% CAGR, a monthly SIP of ₹38,500 is required. Step-up compounding reduces your starting commitment to ₹25,000/mo.';
-        visual = 'sip';
-      } else {
-        responseText = `${advisor.name} Recommendation: Based on quantitative factor models, current market risk/reward stands at 1.8:1. Maintaining disciplined risk parameters and diversified sector exposure is recommended.`;
-      }
+    try {
+      // Mock API call mapping context for the backend
+      const { data } = await api.post('/ai/analyze', {
+        symbol: "NIFTY", // For MVP, hardcoding symbol since we just have one generic endpoint
+        timeframe: "1D",
+        technical_indicators: ["RSI", "MACD"],
+        user_portfolio_context: null
+      });
 
       setMessages((prev) => [
         ...prev,
         {
           sender: 'ai',
-          text: responseText,
+          text: data.analysis_text || `${advisor.name} analyzed "${query}" and returned a score of ${data.confidence_score}/100.`,
           time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-          relatedStocks: related,
-          visualType: visual
+          relatedStocks: [{ symbol: data.symbol, company: data.symbol, price: '₹--', change: '--', positive: data.recommendation.includes('BUY') }],
+          visualType: 'fundamentals'
         }
       ]);
-    }, 1200);
+    } catch (err) {
+      console.error(err);
+      toast.error('AI analysis failed');
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: 'ai',
+          text: `I'm sorry, I encountered an error while analyzing the market data for "${query}". Please try again.`,
+          time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+        }
+      ]);
+    } finally {
+      setIsThinking(false);
+    }
   };
 
   const handleVoiceToggle = () => {
